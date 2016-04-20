@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'chauffeur',
+    'rest_framework.authtoken',
+    'rest_framework',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -52,6 +54,7 @@ MIDDLEWARE_CLASSES = [
 ]
 
 ROOT_URLCONF = 'chauffeur_service.urls'
+AUTH_USER_MODEL = 'chauffeur.User'
 
 TEMPLATES = [
     {
@@ -69,6 +72,12 @@ TEMPLATES = [
         },
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    )
+}
 
 WSGI_APPLICATION = 'chauffeur_service.wsgi.application'
 

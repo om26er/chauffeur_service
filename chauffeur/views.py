@@ -1,47 +1,44 @@
-from rest_framework.generics import(
-    ListAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView)
-from rest_framework import permissions
+from rest_framework.generics import (
+    CreateAPIView, RetrieveUpdateDestroyAPIView)
 
-from chauffeur.models import Customer, Driver
-from chauffeur import permissions as chauffeur_permissions
+from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
 from chauffeur.serializers import CustomerSerializer, DriverSerializer
+from chauffeur import permissions as custom_permissions
 
 
 class CustomerRegistrationView(CreateAPIView):
 
     serializer_class = CustomerSerializer
 
+    def post(self, request, *args, **kwargs):
+        request.data.update({'user_type': USER_TYPE_CUSTOMER})
+        return super().post(request, *args, **kwargs)
+
 
 class DriverRegistrationView(CreateAPIView):
 
     serializer_class = DriverSerializer
 
+    def post(self, request, *args, **kwargs):
+        request.data.update({'user_type': USER_TYPE_DRIVER})
+        return super().post(request, *args, **kwargs)
+
 
 class CustomerView(RetrieveUpdateDestroyAPIView):
 
     serializer_class = CustomerSerializer
+    permission_classes = (custom_permissions.IsOwner,)
 
     def get_queryset(self):
-        return Customer.objects.filter(id=self.kwargs.get('pk'))
+        return User.objects.filter(
+            user_type=USER_TYPE_CUSTOMER, id=self.kwargs.get('pk'))
 
 
 class DriverView(RetrieveUpdateDestroyAPIView):
 
     serializer_class = DriverSerializer
+    permission_classes = (custom_permissions.IsOwner, )
 
     def get_queryset(self):
-        return Driver.objects.filter(id=self.kwargs.get('pk'))
-
-
-class CustomersListView(ListAPIView):
-
-    serializer_class = CustomerSerializer
-    queryset = Customer.objects.all()
-    permission_classes = (permissions.IsAdminUser, )
-
-
-class DriversListView(ListAPIView):
-
-    serializer_class = DriverSerializer
-    queryset = Driver.objects.all()
-    permission_classes = (permissions.IsAdminUser, )
+        return User.objects.filter(
+            user_type=USER_TYPE_DRIVER, id=self.kwargs.get('pk'))
