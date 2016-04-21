@@ -1,5 +1,5 @@
 from rest_framework.generics import (
-    CreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView)
+    CreateAPIView, RetrieveUpdateDestroyAPIView)
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,6 +7,7 @@ from rest_framework import status
 from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
 from chauffeur.serializers import CustomerSerializer, DriverSerializer
 from chauffeur import permissions as custom_permissions
+from chauffeur import helpers
 
 
 class CustomerRegistrationView(CreateAPIView):
@@ -49,38 +50,34 @@ class DriverView(RetrieveUpdateDestroyAPIView):
 
 class AccountActivationView(APIView):
 
-    def _does_user_exist(self, username):
-        try:
-            User.objects.get(username=username)
-            return True
-        except User.DoesNotExist:
-            return False
-
-    def _is_activation_key_valid(self, activation_key):
-        return False
-
-    def post(self, request, **kwargs):
+    def _validate_data(self, username, activation_key):
         message = {}
-        username = request.data.get('username')
-        activation_key = request.data.get('activation_key')
         if not username:
-            message.update({'username': 'Field is mandatory'})
+            message.update({'username': ['Field is mandatory.']})
 
         if not activation_key:
-            message.update({'activation_key': 'Field is mandatory'})
+            message.update({'activation_key': ['Field is mandatory.']})
 
+        return message
+
+    def post(self, request, **kwargs):
+        username = request.data.get('username')
+        activation_key = request.data.get('activation_key')
+        message = self._validate_data(username, activation_key)
         if len(message) > 0:
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
 
-        if self._does_user_exist(username=username):
-            if self._is_activation_key_valid(activation_key=activation_key):
-                User.objects.get(username=username).is_active = True
-                return Response(status=status.HTTP_200_OK)
+        if helpers.does_user_exist(username=username):
+            if helpers.is_activation_key_valid(activation_key=activation_key):
+                user = helpers.set_is_user_active(username, True)
+                serializer = helpers.get_user_serializer_by_type(user)
+                return Response(
+                    data=serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(
-                    data={'activation_key': 'Invalid key'},
+                    data={'activation_key': ['Invalid activation key.']},
                     status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(
-                data={'username': 'User with that name already exists'},
-                status=status.HTTP_400_BAD_REQUEST)
+                data={'username': ['Not found.']},
+                status=status.HTTP_404_NOT_FOUND)

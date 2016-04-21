@@ -1,5 +1,3 @@
-from django.http import Http404
-
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 

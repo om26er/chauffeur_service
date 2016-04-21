@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
@@ -5,7 +6,8 @@ from django.dispatch import receiver
 
 from rest_framework.authtoken.models import Token
 
-from django.conf import settings
+# # from chauffeur import helpers
+# import chauffeur.helpers
 
 
 USER_TYPE_CUSTOMER = 0
@@ -24,7 +26,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class User(AbstractUser):
     user_type = models.IntegerField(
         blank=False, default=-1, choices=USER_TYPE_CHOICES)
-    email_address = models.EmailField(max_length=255, blank=False, unique=True)
+    activation_key = models.IntegerField(blank=True, default=-1)
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True)
     location = models.CharField(max_length=255, blank=True)
@@ -53,4 +55,6 @@ class User(AbstractUser):
         # Hash the password.
         if not self.is_superuser:
             self.set_password(self.password)
+            self.is_active = False
+            # helpers.generate_activation_key_and_send_email(self)
         super().save(*args, **kwargs)
