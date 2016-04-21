@@ -68,7 +68,10 @@ class AccountActivationView(APIView):
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
 
         if helpers.does_user_exist(username=username):
-            if helpers.is_activation_key_valid(activation_key=activation_key):
+            if helpers.is_user_active(username=username):
+                return Response(status=status.HTTP_304_NOT_MODIFIED)
+            elif helpers.is_activation_key_valid(
+                    username=username, activation_key=activation_key):
                 user = helpers.set_is_user_active(username, True)
                 serializer = helpers.get_user_serializer_by_type(user)
                 return Response(

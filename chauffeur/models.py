@@ -23,6 +23,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class User(AbstractUser):
     user_type = models.IntegerField(
         blank=False, default=-1, choices=USER_TYPE_CHOICES)
+    is_new = models.BooleanField(default=True)
     activation_key = models.IntegerField(blank=True, default=-1)
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True)
@@ -49,10 +50,11 @@ class User(AbstractUser):
     AbstractUser._meta.get_field('email').null = False
 
     def save(self, *args, **kwargs):
-        # Hash the password.
-        if not self.is_superuser:
+        if not self.is_superuser and self.is_new:
+            # Hash the password.
             self.set_password(self.password)
             self.is_active = False
+            self.is_new = False
             from chauffeur import helpers
             helpers.generate_activation_key_and_send_email(self)
         super().save(*args, **kwargs)

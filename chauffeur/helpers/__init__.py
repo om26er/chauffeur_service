@@ -10,6 +10,10 @@ def does_user_exist(username):
         return False
 
 
+def is_user_active(username):
+    return User.objects.get(username=username).is_active
+
+
 def set_is_user_active(username, state):
     user = User.objects.get(username=username)
     user.is_active = state
@@ -17,10 +21,9 @@ def set_is_user_active(username, state):
     return user
 
 
-def is_activation_key_valid(activation_key):
-    if activation_key:
-        return True
-    return False
+def is_activation_key_valid(username, activation_key):
+    user = User.objects.get(username=username)
+    return int(user.activation_key) == int(activation_key)
 
 
 def get_user_serializer_by_type(user):
@@ -38,7 +41,7 @@ def generate_random_key():
 
 
 def _send_account_activation_email(activation_key):
-    pass
+    print(activation_key)
 
 
 def _generate_activation_key_and_send_email(user):
