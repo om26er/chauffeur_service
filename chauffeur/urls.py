@@ -16,4 +16,6 @@ urlpatterns = [
         chauffeur_views.CustomerView.as_view()),
     url(r'^api/drivers/(?P<pk>[0-9]+)$',
         chauffeur_views.DriverView.as_view()),
+
+    url(r'^api/activate$', chauffeur_views.AccountActivationView.as_view()),
 ]
