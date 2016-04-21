@@ -6,9 +6,6 @@ from django.dispatch import receiver
 
 from rest_framework.authtoken.models import Token
 
-# # from chauffeur import helpers
-# import chauffeur.helpers
-
 
 USER_TYPE_CUSTOMER = 0
 USER_TYPE_DRIVER = 1
@@ -56,5 +53,6 @@ class User(AbstractUser):
         if not self.is_superuser:
             self.set_password(self.password)
             self.is_active = False
-            # helpers.generate_activation_key_and_send_email(self)
+            from chauffeur import helpers
+            helpers.generate_activation_key_and_send_email(self)
         super().save(*args, **kwargs)

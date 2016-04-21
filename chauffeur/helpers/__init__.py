@@ -43,8 +43,8 @@ def _send_account_activation_email(activation_key):
 
 def _generate_activation_key_and_send_email(user):
     activation_key = generate_random_key()
-    print(activation_key)
     user.activation_key = activation_key
+    user.save()
     _send_account_activation_email(activation_key=activation_key)
 
 
