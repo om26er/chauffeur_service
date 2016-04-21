@@ -46,6 +46,8 @@ class User(AbstractUser):
 
     # FIXME: Find better way to make email unique
     AbstractUser._meta.get_field('email')._unique = True
+    AbstractUser._meta.get_field('email').blank = False
+    AbstractUser._meta.get_field('email').null = False
 
     def save(self, *args, **kwargs):
         # Hash the password.

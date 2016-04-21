@@ -38,6 +38,9 @@ class DriverAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return self.model.objects.filter(user_type=USER_TYPE_DRIVER)
 
+    def has_add_permission(self, request):
+        return False
+
 
 class CustomerAdmin(admin.ModelAdmin):
     fields = ('is_active', 'username', 'password', 'first_name', 'last_name',
@@ -50,6 +53,9 @@ class CustomerAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return self.model.objects.filter(user_type=USER_TYPE_CUSTOMER)
+
+    def has_add_permission(self, request):
+        return False
 
 
 class PanelAdmin(admin.ModelAdmin):
