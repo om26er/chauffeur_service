@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
@@ -5,11 +6,13 @@ from django.dispatch import receiver
 
 from rest_framework.authtoken.models import Token
 
-from django.conf import settings
 
+ACTIVATION_KEY_DEFAULT = -1
+PASSWORD_RESET_KEY_DEFAULT = -1
 
 USER_TYPE_CUSTOMER = 0
 USER_TYPE_DRIVER = 1
+
 
 USER_TYPE_CHOICES = (
     (USER_TYPE_CUSTOMER, 'Customer'), (USER_TYPE_DRIVER, 'Driver'))
@@ -24,7 +27,11 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class User(AbstractUser):
     user_type = models.IntegerField(
         blank=False, default=-1, choices=USER_TYPE_CHOICES)
-    email_address = models.EmailField(max_length=255, blank=False, unique=True)
+    is_new = models.BooleanField(default=True)
+    activation_key = models.IntegerField(default=ACTIVATION_KEY_DEFAULT)
+    password_reset_key = models.IntegerField(
+        default=PASSWORD_RESET_KEY_DEFAULT)
+
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True)
     location = models.CharField(max_length=255, blank=True)
@@ -46,9 +53,15 @@ class User(AbstractUser):
 
     # FIXME: Find better way to make email unique
     AbstractUser._meta.get_field('email')._unique = True
+    AbstractUser._meta.get_field('email').blank = False
+    AbstractUser._meta.get_field('email').null = False
 
     def save(self, *args, **kwargs):
-        # Hash the password.
-        if not self.is_superuser:
+        if not self.is_superuser and self.is_new:
+            # Hash the password.
             self.set_password(self.password)
+            self.is_active = False
+            self.is_new = False
+            from chauffeur import helpers
+            helpers.generate_activation_key_and_send_email(self)
         super().save(*args, **kwargs)
