@@ -1,3 +1,6 @@
+from django.conf import settings
+from django.core.mail import send_mail
+
 from chauffeur.models import (
     User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER, ACTIVATION_KEY_DEFAULT,
     PASSWORD_RESET_KEY_DEFAULT)
@@ -54,13 +57,21 @@ def generate_random_key():
 
 
 def _send_account_activation_email(email, activation_key):
-    print(email)
-    print(activation_key)
+    send_mail(
+        'Chauffeur: Account activation',
+        'Account activation key: {}'.format(activation_key),
+        settings.EMAIL_HOST_USER,
+        [str(email)],
+        fail_silently=False)
 
 
 def _send_password_reset_email(email, password_reset_key):
-    print(email)
-    print(password_reset_key)
+    send_mail(
+        'Chauffeur: Password reset',
+        'Password reset key: {}'.format(password_reset_key),
+        settings.EMAIL_HOST_USER,
+        [str(email)],
+        fail_silently=False)
 
 
 def _generate_activation_key_and_send_email(user):
