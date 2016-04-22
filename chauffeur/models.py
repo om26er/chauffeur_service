@@ -7,8 +7,12 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
 
+ACTIVATION_KEY_DEFAULT = -1
+PASSWORD_RESET_KEY_DEFAULT = -1
+
 USER_TYPE_CUSTOMER = 0
 USER_TYPE_DRIVER = 1
+
 
 USER_TYPE_CHOICES = (
     (USER_TYPE_CUSTOMER, 'Customer'), (USER_TYPE_DRIVER, 'Driver'))
@@ -24,7 +28,10 @@ class User(AbstractUser):
     user_type = models.IntegerField(
         blank=False, default=-1, choices=USER_TYPE_CHOICES)
     is_new = models.BooleanField(default=True)
-    activation_key = models.IntegerField(blank=True, default=-1)
+    activation_key = models.IntegerField(default=ACTIVATION_KEY_DEFAULT)
+    password_reset_key = models.IntegerField(
+        default=PASSWORD_RESET_KEY_DEFAULT)
+
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True)
     location = models.CharField(max_length=255, blank=True)
