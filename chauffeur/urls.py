@@ -1,4 +1,6 @@
 from django.conf.urls import url
+from django.conf import settings
+from django.conf.urls.static import static
 
 from rest_framework.authtoken import views
 
@@ -20,4 +22,4 @@ urlpatterns = [
         chauffeur_views.CustomerView.as_view()),
     url(r'^api/drivers/(?P<pk>[0-9]+)$',
         chauffeur_views.DriverView.as_view()),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
