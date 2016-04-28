@@ -19,18 +19,10 @@ class CustomerRegistrationView(CreateAPIView):
 
     serializer_class = CustomerSerializer
 
-    def post(self, request, *args, **kwargs):
-        request.data.update({'user_type': USER_TYPE_CUSTOMER})
-        return super().post(request, *args, **kwargs)
-
 
 class DriverRegistrationView(CreateAPIView):
 
     serializer_class = DriverSerializer
-
-    def post(self, request, *args, **kwargs):
-        request.data.update({'user_type': USER_TYPE_DRIVER})
-        return super().post(request, *args, **kwargs)
 
 
 class CustomerView(RetrieveUpdateDestroyAPIView):
