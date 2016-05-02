@@ -1,3 +1,5 @@
+import threading
+
 from django.conf import settings
 from django.core.mail import send_mail
 
@@ -7,39 +9,47 @@ from chauffeur.models import (
 from chauffeur.serializers import CustomerSerializer, DriverSerializer
 
 
-def does_user_exist(**kwargs):
-    try:
-        User.objects.get(**kwargs)
-        return True
-    except User.DoesNotExist:
-        return False
+class UserHelpers:
+    user = None
 
+    def __init__(self, email):
+        self.email = email
+        try:
+            self.user = User.objects.get(email=self.email)
+        except User.DoesNotExist:
+            self.user = None
 
-def is_user_active(username):
-    return User.objects.get(username=username).is_active
+    def exists(self):
+        return self.user is not None
 
+    def is_active(self):
+        return self.user.is_active
 
-def set_is_user_active(username, state):
-    user = User.objects.get(username=username)
-    user.is_active = state
-    user.save()
-    return user
+    def _set_is_active(self, active):
+        self.user.is_active = active
+        self.user.save()
+        return self.user
 
+    def activate_account(self):
+        self.user.activation_key = ACTIVATION_KEY_DEFAULT
+        return self._set_is_active(active=True)
 
-def is_activation_key_valid(username, activation_key):
-    if activation_key == ACTIVATION_KEY_DEFAULT:
-        return False
+    def is_activation_key_valid(self, key):
+        if key == ACTIVATION_KEY_DEFAULT:
+            return False
 
-    user = User.objects.get(username=username)
-    return int(user.activation_key) == int(activation_key)
+        return int(self.user.activation_key) == int(key)
 
+    def is_password_reset_valid(self, key):
+        if key == PASSWORD_RESET_KEY_DEFAULT:
+            return False
 
-def is_password_reset_key_valid(username, password_reset_key):
-    if password_reset_key == PASSWORD_RESET_KEY_DEFAULT:
-        return False
+        return int(self.user.password_reset_key) == int(key)
 
-    user = User.objects.get(username=username)
-    return int(user.password_reset_key) == int(password_reset_key)
+    def change_password(self, new_password):
+        self.user.set_password(new_password)
+        self.user.password_reset_key = PASSWORD_RESET_KEY_DEFAULT
+        self.user.save()
 
 
 def get_user_serializer_by_type(user):
@@ -53,7 +63,7 @@ def get_user_serializer_by_type(user):
 
 def generate_random_key():
     import random
-    return random.randrange(0, 9999, 4)
+    return random.randrange(0, 99999, 5)
 
 
 def _send_account_activation_email(email, activation_key):
@@ -82,7 +92,6 @@ def _generate_activation_key_and_send_email(user):
 
 
 def generate_activation_key_and_send_email(user):
-    import threading
     thread = threading.Timer(
         0, _generate_activation_key_and_send_email, args=(user,))
     thread.start()
@@ -96,7 +105,6 @@ def _generate_password_reset_key_and_send_email(user):
 
 
 def generate_password_reset_key_and_send_email(user):
-    import threading
     thread = threading.Timer(
         0, _generate_password_reset_key_and_send_email, args=(user,))
     thread.start()
