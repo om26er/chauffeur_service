@@ -10,6 +10,7 @@ from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
 from chauffeur.serializers import CustomerSerializer, DriverSerializer
 from chauffeur import permissions as custom_permissions
 from chauffeur import helpers
+from chauffeur.helpers.user import UserHelpers
 
 
 class CustomerRegistrationView(CreateAPIView):
@@ -60,13 +61,13 @@ class AccountActivationView(APIView):
         if len(message) > 0:
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
 
-        user_account = helpers.UserHelpers(email=email)
+        user_account = UserHelpers(email=email)
         if user_account.exists():
             if user_account.is_active():
                 return Response(status=status.HTTP_304_NOT_MODIFIED)
             elif user_account.is_activation_key_valid(key=activation_key):
-                user = user_account.activate_account()
-                serializer = helpers.get_user_serializer_by_type(user)
+                user_account.activate_account()
+                serializer = user_account.get_serializer()
                 return Response(
                     data=serializer.data, status=status.HTTP_200_OK)
             return Response(
@@ -91,7 +92,7 @@ class RequestPasswordResetView(APIView):
                 {'email': ['Invalid email address.']},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        user_account = helpers.UserHelpers(email=email)
+        user_account = UserHelpers(email=email)
         if user_account.exists():
             user = user_account.user
             if user.is_superuser or user.is_staff:
@@ -107,7 +108,7 @@ class RequestPasswordResetView(APIView):
                 status=status.HTTP_404_NOT_FOUND)
 
 
-class PasswordChangeWithKeyView(APIView):
+class PasswordChangeView(APIView):
     def _validate_data(self, email, password_reset_key, new_password):
         message = {}
         if not email:
@@ -128,7 +129,7 @@ class PasswordChangeWithKeyView(APIView):
         if len(message) > 0:
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
 
-        user_account = helpers.UserHelpers(email=email)
+        user_account = UserHelpers(email=email)
         if user_account.exists():
             user = user_account.user
             if user.is_superuser or user.is_staff:
@@ -146,3 +147,27 @@ class PasswordChangeWithKeyView(APIView):
             return Response(
                 {'email': ['No account registered with that email.']},
                 status=status.HTTP_404_NOT_FOUND)
+
+
+class UserStatusView(APIView):
+    def get(self, request, **kwargs):
+        email = request.data.get('email')
+        if not email:
+            return Response(
+                {'email': ['Field is mandatory.']},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            return Response(
+                {'email': ['Invalid email address.']},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        user_account = UserHelpers(email=email)
+        if not user_account.user:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        elif not user_account.is_active():
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        return Response(status=status.HTTP_200_OK)

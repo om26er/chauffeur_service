@@ -3,63 +3,6 @@ import threading
 from django.conf import settings
 from django.core.mail import send_mail
 
-from chauffeur.models import (
-    User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER, ACTIVATION_KEY_DEFAULT,
-    PASSWORD_RESET_KEY_DEFAULT)
-from chauffeur.serializers import CustomerSerializer, DriverSerializer
-
-
-class UserHelpers:
-    user = None
-
-    def __init__(self, email):
-        self.email = email
-        try:
-            self.user = User.objects.get(email=self.email)
-        except User.DoesNotExist:
-            self.user = None
-
-    def exists(self):
-        return self.user is not None
-
-    def is_active(self):
-        return self.user.is_active
-
-    def _set_is_active(self, active):
-        self.user.is_active = active
-        self.user.save()
-        return self.user
-
-    def activate_account(self):
-        self.user.activation_key = ACTIVATION_KEY_DEFAULT
-        return self._set_is_active(active=True)
-
-    def is_activation_key_valid(self, key):
-        if key == ACTIVATION_KEY_DEFAULT:
-            return False
-
-        return int(self.user.activation_key) == int(key)
-
-    def is_password_reset_valid(self, key):
-        if key == PASSWORD_RESET_KEY_DEFAULT:
-            return False
-
-        return int(self.user.password_reset_key) == int(key)
-
-    def change_password(self, new_password):
-        self.user.set_password(new_password)
-        self.user.password_reset_key = PASSWORD_RESET_KEY_DEFAULT
-        self.user.save()
-
-
-def get_user_serializer_by_type(user):
-    if user.user_type == USER_TYPE_CUSTOMER:
-        return CustomerSerializer(user)
-    elif user.user_type == USER_TYPE_DRIVER:
-        return DriverSerializer(user)
-    else:
-        raise ValueError('Invalid user type')
-
 
 def generate_random_key():
     import random
