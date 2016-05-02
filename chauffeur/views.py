@@ -32,6 +32,18 @@ class CustomerView(RetrieveUpdateDestroyAPIView):
         return User.objects.filter(
             user_type=USER_TYPE_CUSTOMER, id=self.kwargs.get('pk'))
 
+    def put(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        if email:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return super().put(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        if email:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return super().patch(request, *args, **kwargs)
+
 
 class DriverView(RetrieveUpdateDestroyAPIView):
 
@@ -41,6 +53,18 @@ class DriverView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return User.objects.filter(
             user_type=USER_TYPE_DRIVER, id=self.kwargs.get('pk'))
+
+    def patch(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        if email:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return super().patch(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        if email:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return super().put(request, *args, **kwargs)
 
 
 class AccountActivationView(APIView):
