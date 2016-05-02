@@ -1,11 +1,13 @@
 from django.conf import settings
-from django.contrib.auth.models import (
-    AbstractBaseUser, PermissionsMixin, BaseUserManager)
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from rest_framework.authtoken.models import Token
+
+from chauffeur.managers import CustomUserManager
+from chauffeur.helpers import generate_activation_key_and_send_email
 
 
 ACTIVATION_KEY_DEFAULT = -1
@@ -17,29 +19,6 @@ USER_TYPE_DRIVER = 1
 
 USER_TYPE_CHOICES = (
     (USER_TYPE_CUSTOMER, 'Customer'), (USER_TYPE_DRIVER, 'Driver'))
-
-
-class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email or not password:
-            raise ValueError('Email and Password are mandatory')
-        user = self.model(email=email)
-        user.set_password(raw_password=password)
-        user.is_active = False
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, password, **extra_fields):
-        if not email:
-            raise ValueError('Email is mandatory')
-
-        if not password:
-            raise ValueError('Password is mandatory')
-        user = self.model(email=email)
-        user.set_password(raw_password=password)
-        user.is_admin = True
-        user.save(using=self._db)
-        return user
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -90,8 +69,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             self.set_password(self.password)
             self.is_active = False
             self.is_new = False
-            from chauffeur import helpers
-            helpers.generate_activation_key_and_send_email(self)
+            generate_activation_key_and_send_email(self)
         super().save(*args, **kwargs)
 
     def get_full_name(self):
