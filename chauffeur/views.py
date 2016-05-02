@@ -151,7 +151,7 @@ class PasswordChangeView(APIView):
 
 class UserStatusView(APIView):
     def get(self, request, **kwargs):
-        email = request.data.get('email')
+        email = request.query_params.get('email', None)
         if not email:
             return Response(
                 {'email': ['Field is mandatory.']},

@@ -9,9 +9,9 @@ from chauffeur import views as chauffeur_views
 urlpatterns = [
     url(r'^api/login$', views.obtain_auth_token),
     url(r'^api/activate$', chauffeur_views.AccountActivationView.as_view()),
-    url(r'^api/reset', chauffeur_views.RequestPasswordResetView.as_view()),
-    url(r'^api/change_password', chauffeur_views.PasswordChangeView.as_view()),
-    url(r'^api/status', chauffeur_views.UserStatusView.as_view()),
+    url(r'^api/reset$', chauffeur_views.RequestPasswordResetView.as_view()),
+    url(r'^api/change_password$', chauffeur_views.PasswordChangeView.as_view()),
+    url(r'^api/status$', chauffeur_views.UserStatusView.as_view()),
 
     url(r'^api/register_customer$',
         chauffeur_views.CustomerRegistrationView.as_view()),
