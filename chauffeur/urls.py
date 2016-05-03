@@ -7,11 +7,14 @@ from rest_framework.authtoken import views
 from chauffeur import views as chauffeur_views
 
 urlpatterns = [
-    url(r'^api/login$', views.obtain_auth_token),
-    url(r'^api/activate$', chauffeur_views.AccountActivationView.as_view()),
-    url(r'^api/reset$', chauffeur_views.RequestPasswordResetView.as_view()),
-    url(r'^api/change_password$', chauffeur_views.PasswordChangeView.as_view()),
-    url(r'^api/status$', chauffeur_views.UserStatusView.as_view()),
+    url(r'^api/accounts/login$', views.obtain_auth_token),
+    url(r'^api/accounts/activate$',
+        chauffeur_views.AccountActivationView.as_view()),
+    url(r'^api/accounts/reset_password$',
+        chauffeur_views.RequestPasswordResetView.as_view()),
+    url(r'^api/accounts/change_password$',
+        chauffeur_views.PasswordChangeView.as_view()),
+    url(r'^api/accounts/status$', chauffeur_views.UserStatusView.as_view()),
 
     url(r'^api/register_customer$',
         chauffeur_views.CustomerRegistrationView.as_view()),
@@ -22,4 +25,6 @@ urlpatterns = [
         chauffeur_views.CustomerView.as_view()),
     url(r'^api/drivers/(?P<pk>[0-9]+)$',
         chauffeur_views.DriverView.as_view()),
+
+    url(r'^api/drivers_around$', chauffeur_views.DriversAroundView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

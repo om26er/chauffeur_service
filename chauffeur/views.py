@@ -1,16 +1,18 @@
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
-from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import (
+    CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView)
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 
 from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
 from chauffeur.serializers import CustomerSerializer, DriverSerializer
 from chauffeur import permissions as custom_permissions
 from chauffeur import helpers
 from chauffeur.helpers.user import UserHelpers
+from chauffeur.helpers.location import LocationCalculator
 
 
 class CustomerRegistrationView(CreateAPIView):
@@ -26,7 +28,9 @@ class DriverRegistrationView(CreateAPIView):
 class CustomerView(RetrieveUpdateDestroyAPIView):
 
     serializer_class = CustomerSerializer
-    permission_classes = (custom_permissions.IsOwner,)
+    permission_classes = (
+        custom_permissions.IsOwner, permissions.IsAuthenticated,
+    )
 
     def get_queryset(self):
         return User.objects.filter(
@@ -48,7 +52,9 @@ class CustomerView(RetrieveUpdateDestroyAPIView):
 class DriverView(RetrieveUpdateDestroyAPIView):
 
     serializer_class = DriverSerializer
-    permission_classes = (custom_permissions.IsOwner, )
+    permission_classes = (
+        custom_permissions.IsOwner, permissions.IsAuthenticated,
+    )
 
     def get_queryset(self):
         return User.objects.filter(
@@ -195,3 +201,33 @@ class UserStatusView(APIView):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         return Response(status=status.HTTP_200_OK)
+
+
+class DriversAroundView(ListAPIView):
+
+    permission_classes = (permissions.IsAuthenticated, )
+    serializer_class = DriverSerializer
+
+    def get_queryset(self):
+        location_calculator = LocationCalculator(self.request.user)
+        return location_calculator.get_drivers_around(
+            radius=self.request.query_params.get('radius', None),
+            base_location=self.request.query_params.get('base_location', None))
+
+    def _validate_data(self, radius, base_location):
+        message = {}
+        if not radius:
+            message.update({'radius': ['Field is mandatory.']})
+
+        if not base_location:
+            message.update({'base_location': ['Field is mandatory.']})
+
+        return message
+
+    def get(self, request, *args, **kwargs):
+        radius = request.query_params.get('radius', None)
+        base_location = request.query_params.get('base_location', None)
+        message = self._validate_data(radius, base_location)
+        if len(message) > 0:
+            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+        return super().get(request, *args, **kwargs)

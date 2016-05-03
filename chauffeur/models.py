@@ -7,7 +7,8 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
 from chauffeur.managers import CustomUserManager
-from chauffeur.helpers import generate_activation_key_and_send_email
+from chauffeur.helpers import (
+    send_account_activation_email, generate_random_key)
 
 
 ACTIVATION_KEY_DEFAULT = -1
@@ -69,8 +70,12 @@ class User(AbstractBaseUser, PermissionsMixin):
             self.set_password(self.password)
             self.is_active = False
             self.is_new = False
-            generate_activation_key_and_send_email(self)
+            activation_key = generate_random_key()
+            self.activation_key = activation_key
+            send_account_activation_email(self.email, activation_key)
         super().save(*args, **kwargs)
+
+
 
     def get_full_name(self):
         return self.email

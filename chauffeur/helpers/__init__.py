@@ -27,16 +27,9 @@ def _send_password_reset_email(email, password_reset_key):
         fail_silently=False)
 
 
-def _generate_activation_key_and_send_email(user):
-    activation_key = generate_random_key()
-    user.activation_key = activation_key
-    user.save()
-    _send_account_activation_email(user.email, activation_key)
-
-
-def generate_activation_key_and_send_email(user):
-    thread = threading.Timer(
-        0, _generate_activation_key_and_send_email, args=(user,))
+def send_account_activation_email(email, key):
+    thread = threading.Thread(
+        target=_send_account_activation_email, args=(email, key))
     thread.start()
 
 
@@ -48,6 +41,6 @@ def _generate_password_reset_key_and_send_email(user):
 
 
 def generate_password_reset_key_and_send_email(user):
-    thread = threading.Timer(
-        0, _generate_password_reset_key_and_send_email, args=(user,))
+    thread = threading.Thread(
+        target=_generate_password_reset_key_and_send_email, args=(user,))
     thread.start()
