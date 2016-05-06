@@ -30,8 +30,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, blank=False, unique=True)
-    first_name = models.CharField(max_length=255, blank=True)
-    last_name = models.CharField(max_length=255, blank=True)
+    full_name = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_new = models.BooleanField(default=True)
@@ -45,17 +44,16 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True)
-    location = models.CharField(max_length=255, blank=True)
     number_of_hires = models.IntegerField(blank=True, default=0)
 
     # Driver specific fields
     driving_experience = models.CharField(max_length=255, blank=True)
+    location = models.CharField(max_length=255, blank=True)
     location_last_updated = models.DateTimeField(blank=True, null=True)
     bio = models.CharField(max_length=2000, blank=True)
 
     # Customer specific fields
     vehicle_type = models.CharField(max_length=255, blank=True)
-    vehicle_category = models.CharField(max_length=255, blank=True)
     vehicle_make = models.CharField(max_length=255, blank=True)
     vehicle_model = models.CharField(max_length=255, blank=True)
     initial_app_payment = models.FloatField(blank=True, default=0.0)
@@ -74,8 +72,6 @@ class User(AbstractBaseUser, PermissionsMixin):
             self.activation_key = activation_key
             send_account_activation_email(self.email, activation_key)
         super().save(*args, **kwargs)
-
-
 
     def get_full_name(self):
         return self.email

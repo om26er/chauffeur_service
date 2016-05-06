@@ -27,7 +27,7 @@ class PanelAdminProxy(User):
 
 class DriverAdmin(admin.ModelAdmin):
 
-    fields = ('is_active', 'email', 'password', 'first_name', 'last_name',
+    fields = ('is_active', 'email', 'password', 'full_name',
               'phone_number', 'photo', 'location', 'location_last_updated',
               'driving_experience', 'number_of_hires', 'bio')
 
@@ -42,7 +42,7 @@ class DriverAdmin(admin.ModelAdmin):
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    fields = ('is_active', 'email', 'password', 'first_name', 'last_name',
+    fields = ('is_active', 'email', 'password', 'full_name',
               'phone_number', 'photo', 'location', 'number_of_hires',
               'vehicle_type', 'vehicle_category', 'vehicle_make',
               'vehicle_model', 'initial_app_payment')
@@ -58,7 +58,7 @@ class CustomerAdmin(admin.ModelAdmin):
 
 
 class PanelAdmin(admin.ModelAdmin):
-    fields = ('password', 'first_name', 'last_name', 'email',
+    fields = ('password', 'full_name', 'email',
               'is_active', 'is_superuser', 'last_login',
               'groups', 'user_permissions')
 

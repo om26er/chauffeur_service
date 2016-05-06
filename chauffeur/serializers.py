@@ -9,20 +9,18 @@ class CustomerSerializer(serializers.ModelSerializer):
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(write_only=True)
-    first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
+    full_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
     vehicle_type = serializers.CharField(required=True)
     vehicle_make = serializers.CharField(required=True)
     vehicle_model = serializers.CharField(required=True)
-    vehicle_category = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'password',
-                  'email', 'phone_number', 'photo', 'location',
+        fields = ('id', 'full_name', 'password',
+                  'email', 'phone_number', 'photo',
                   'number_of_hires', 'vehicle_type', 'vehicle_make',
-                  'vehicle_model', 'vehicle_category', 'initial_app_payment')
+                  'vehicle_model', 'initial_app_payment')
 
     def create(self, validated_data):
         validated_data.update({'user_type': USER_TYPE_CUSTOMER})
@@ -41,14 +39,13 @@ class DriverSerializer(serializers.ModelSerializer):
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(write_only=True)
-    first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
+    full_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
     driving_experience = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'password',
+        fields = ('id', 'full_name', 'password',
                   'email', 'phone_number', 'photo', 'location',
                   'location_last_updated', 'driving_experience',
                   'number_of_hires', 'bio')
