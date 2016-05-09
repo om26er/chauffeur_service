@@ -50,11 +50,19 @@ class DriverSerializer(serializers.ModelSerializer):
                   'location_last_updated', 'driving_experience',
                   'number_of_hires', 'bio')
 
+    def _append_location_time_if_location_request(self, validated_data):
+        from datetime import datetime
+        location = validated_data.get('location')
+        if location:
+            validated_data.update({'location_last_updated': datetime.now()})
+
     def create(self, validated_data):
+        self._append_location_time_if_location_request(validated_data)
         validated_data.update({'user_type': USER_TYPE_DRIVER})
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
+        self._append_location_time_if_location_request(validated_data)
         password = validated_data.get('password')
         if password:
             del validated_data['password']
