@@ -5,6 +5,7 @@ from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    user_type = serializers.IntegerField(read_only=True)
     email = serializers.EmailField(
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())])
@@ -35,6 +36,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class DriverSerializer(serializers.ModelSerializer):
+    user_type = serializers.IntegerField(read_only=True)
     email = serializers.EmailField(
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())])
