@@ -17,7 +17,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'full_name', 'password',
+        fields = ('id', 'full_name', 'password', 'user_type',
                   'email', 'phone_number', 'photo',
                   'number_of_hires', 'vehicle_type', 'vehicle_make',
                   'vehicle_model', 'initial_app_payment')
@@ -45,7 +45,7 @@ class DriverSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'full_name', 'password',
+        fields = ('id', 'full_name', 'password', 'user_type',
                   'email', 'phone_number', 'photo', 'location',
                   'location_last_updated', 'driving_experience',
                   'number_of_hires', 'bio')
