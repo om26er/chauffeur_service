@@ -98,6 +98,7 @@ class AccountActivationView(APIView):
             elif user_account.is_activation_key_valid(key=activation_key):
                 user_account.activate_account()
                 serializer = user_account.get_serializer()
+                serializer.data.update({'token': user_account.get_token()})
                 return Response(
                     data=serializer.data, status=status.HTTP_200_OK)
             return Response(
