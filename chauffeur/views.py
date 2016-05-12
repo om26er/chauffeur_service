@@ -252,7 +252,7 @@ class UserDetailsView(APIView):
 
 class ActivationKeyView(APIView):
     def post(self, request, **kwargs):
-        email = request.data.get('email', None)
+        email = request.data.get('email')
         if not email:
             return Response(
                 data={'email': ['Field is mandatory.']},
