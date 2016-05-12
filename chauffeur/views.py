@@ -248,3 +248,22 @@ class UserDetailsView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ActivationKeyView(APIView):
+    def get(self, request, **kwargs):
+        email = request.data.get('email', None)
+        if not email:
+            return Response(
+                data={'email': ['Field is mandatory.']},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        user_account = UserHelpers(email=email)
+        if user_account.exists():
+            if user_account.is_active():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            else:
+                helpers.send_account_activation_email(
+                    user_account.user.email, user_account.user.activation_key)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
