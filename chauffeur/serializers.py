@@ -12,7 +12,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     full_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
-    vehicle_type = serializers.CharField(required=True)
+    vehicle_type = serializers.IntegerField(required=True)
     vehicle_make = serializers.CharField(required=True)
     vehicle_model = serializers.CharField(required=True)
 
