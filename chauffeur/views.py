@@ -251,7 +251,7 @@ class UserDetailsView(APIView):
 
 
 class ActivationKeyView(APIView):
-    def get(self, request, **kwargs):
+    def post(self, request, **kwargs):
         email = request.data.get('email', None)
         if not email:
             return Response(
