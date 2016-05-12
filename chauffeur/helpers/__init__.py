@@ -6,7 +6,8 @@ from django.core.mail import send_mail
 
 def generate_random_key():
     import random
-    return random.randrange(0, 99999, 5)
+    # Ensures the return number is always 5 numbers long.
+    return random.randint(10000, 99999)
 
 
 def _send_account_activation_email(email, activation_key):
