@@ -126,9 +126,22 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 MEDIA_URL = '/media/'
 
+
+def read_password():
+    import configparser
+    config_file = os.path.expanduser('~/config.ini')
+    config = configparser.ConfigParser()
+    if os.path.isfile(config_file):
+        config.read(config_file)
+        try:
+            return config.get('credentials', 'email_password')
+        except configparser.NoOptionError or configparser.NoSectionError:
+            return None
+
+
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'byteshaft@gmail.com'
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_PASSWORD = read_password()
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

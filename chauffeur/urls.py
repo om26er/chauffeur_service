@@ -15,6 +15,9 @@ urlpatterns = [
     url(r'^api/accounts/change_password$',
         chauffeur_views.PasswordChangeView.as_view()),
     url(r'^api/accounts/status$', chauffeur_views.UserStatusView.as_view()),
+    url(r'^api/accounts/me', chauffeur_views.UserDetailsView.as_view()),
+    url(r'^api/accounts/request_activation_key',
+        chauffeur_views.ActivationKeyView.as_view()),
 
     url(r'^api/register_customer$',
         chauffeur_views.CustomerRegistrationView.as_view()),

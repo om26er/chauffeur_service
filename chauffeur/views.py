@@ -231,3 +231,39 @@ class DriversAroundView(ListAPIView):
         if len(message) > 0:
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
         return super().get(request, *args, **kwargs)
+
+
+class UserDetailsView(APIView):
+    permission_classes = (
+        custom_permissions.IsOwner, permissions.IsAuthenticated,
+    )
+
+    def get(self, request, **kwargs):
+        user = User.objects.get(id=self.request.user.id)
+        if user.user_type == USER_TYPE_CUSTOMER:
+            serializer = CustomerSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif user.user_type == USER_TYPE_DRIVER:
+            serializer = DriverSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ActivationKeyView(APIView):
+    def get(self, request, **kwargs):
+        email = request.data.get('email', None)
+        if not email:
+            return Response(
+                data={'email': ['Field is mandatory.']},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        user_account = UserHelpers(email=email)
+        if user_account.exists():
+            if user_account.is_active():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            else:
+                helpers.send_account_activation_email(
+                    user_account.user.email, user_account.user.activation_key)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)

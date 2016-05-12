@@ -53,7 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     bio = models.CharField(max_length=2000, blank=True)
 
     # Customer specific fields
-    vehicle_type = models.CharField(max_length=255, blank=True)
+    vehicle_type = models.IntegerField(default=-1)
     vehicle_make = models.CharField(max_length=255, blank=True)
     vehicle_model = models.CharField(max_length=255, blank=True)
     initial_app_payment = models.FloatField(blank=True, default=0.0)
@@ -68,9 +68,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             self.set_password(self.password)
             self.is_active = False
             self.is_new = False
-            activation_key = generate_random_key()
-            self.activation_key = activation_key
-            send_account_activation_email(self.email, activation_key)
+            self.activation_key = generate_random_key()
+            send_account_activation_email(self.email, self.activation_key)
         super().save(*args, **kwargs)
 
     def get_full_name(self):
