@@ -2,7 +2,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
 from rest_framework.generics import (
-    CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView)
+    CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, RetrieveAPIView)
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -91,21 +91,24 @@ class AccountActivationView(APIView):
         if len(message) > 0:
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
 
-        user_account = UserHelpers(email=email)
-        if user_account.exists():
-            if user_account.is_active():
-                return Response(status=status.HTTP_304_NOT_MODIFIED)
-            elif user_account.is_activation_key_valid(key=activation_key):
-                user_account.activate_account()
-                serializer = user_account.get_serializer()
-                temp_data = serializer.data
-                temp_data.update({'token': user_account.get_token()})
-                return Response(data=temp_data, status=status.HTTP_200_OK)
+        try:
+            user_account = UserHelpers(email=email)
+        except User.DoesNotExist:
             return Response(
-                data={'activation_key': ['Invalid activation key.']},
-                status=status.HTTP_400_BAD_REQUEST)
+                data={'email': ['Not found.']},
+                status=status.HTTP_404_NOT_FOUND)
+
+        if user_account.is_active():
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+        elif user_account.is_activation_key_valid(key=activation_key):
+            user_account.activate_account()
+            serializer = user_account.get_serializer()
+            temp_data = serializer.data
+            temp_data.update({'token': user_account.get_token()})
+            return Response(data=temp_data, status=status.HTTP_200_OK)
         return Response(
-            data={'email': ['Not found.']}, status=status.HTTP_404_NOT_FOUND)
+            data={'activation_key': ['Invalid activation key.']},
+            status=status.HTTP_400_BAD_REQUEST)
 
 
 class RequestPasswordResetView(APIView):
@@ -123,20 +126,21 @@ class RequestPasswordResetView(APIView):
                 {'email': ['Invalid email address.']},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        user_account = UserHelpers(email=email)
-        if user_account.exists():
-            user = user_account.user
-            if user.is_superuser or user.is_staff:
-                return Response(
-                    {'email': ['Cannot reset password for admin.']},
-                    status=status.HTTP_400_BAD_REQUEST)
-            else:
-                helpers.generate_password_reset_key_and_send_email(user=user)
-                return Response(status=status.HTTP_200_OK)
-        else:
+        try:
+            user_account = UserHelpers(email=email)
+        except User.DoesNotExist:
             return Response(
                 {'email': ['No account registered with that email.']},
                 status=status.HTTP_404_NOT_FOUND)
+
+        user = user_account.user
+        if user.is_superuser or user.is_staff:
+            return Response(
+                {'email': ['Cannot reset password for admin.']},
+                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            helpers.generate_password_reset_key_and_send_email(user=user)
+            return Response(status=status.HTTP_200_OK)
 
 
 class PasswordChangeView(APIView):
@@ -160,27 +164,29 @@ class PasswordChangeView(APIView):
         if len(message) > 0:
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
 
-        user_account = UserHelpers(email=email)
-        if user_account.exists():
-            user = user_account.user
-            if user.is_superuser or user.is_staff:
-                return Response(
-                    {'email': ['Cannot changed password for admin.']},
-                    status=status.HTTP_400_BAD_REQUEST)
-            if user_account.is_password_reset_valid(key=password_reset_key):
-                user_account.change_password(new_password=new_password)
-                return Response(status=status.HTTP_200_OK)
-            else:
-                return Response(
-                    {'password_reset_key': ['Invalid password reset key.']},
-                    status=status.HTTP_400_BAD_REQUEST)
-        else:
+        try:
+            user_account = UserHelpers(email=email)
+        except User.DoesNotExist:
             return Response(
                 {'email': ['No account registered with that email.']},
                 status=status.HTTP_404_NOT_FOUND)
 
+        user = user_account.user
+        if user.is_superuser or user.is_staff:
+            return Response(
+                {'email': ['Cannot changed password for admin.']},
+                status=status.HTTP_400_BAD_REQUEST)
+        if user_account.is_password_reset_valid(key=password_reset_key):
+            user_account.change_password(new_password=new_password)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {'password_reset_key': ['Invalid password reset key.']},
+                status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserStatusView(APIView):
+
     def get(self, request, **kwargs):
         email = request.query_params.get('email', None)
         if not email:
@@ -195,13 +201,15 @@ class UserStatusView(APIView):
                 {'email': ['Invalid email address.']},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        user_account = UserHelpers(email=email)
-        if not user_account.user:
+        try:
+            user_account = UserHelpers(email=email)
+        except User.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        elif not user_account.is_active():
-            return Response(status=status.HTTP_403_FORBIDDEN)
 
-        return Response(status=status.HTTP_200_OK)
+        if user_account.is_active():
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 class DriversAroundView(ListAPIView):
@@ -252,6 +260,7 @@ class UserDetailsView(APIView):
 
 
 class ActivationKeyView(APIView):
+
     def post(self, request, **kwargs):
         email = request.data.get('email')
         if not email:
@@ -259,13 +268,14 @@ class ActivationKeyView(APIView):
                 data={'email': ['Field is mandatory.']},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        user_account = UserHelpers(email=email)
-        if user_account.exists():
-            if user_account.is_active():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            else:
-                helpers.send_account_activation_email(
-                    user_account.user.email, user_account.user.activation_key)
-                return Response(status=status.HTTP_200_OK)
-        else:
+        try:
+            user_account = UserHelpers(email=email)
+        except User.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if user_account.is_active():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            helpers.send_account_activation_email(
+                user_account.user.email, user_account.user.activation_key)
+            return Response(status=status.HTTP_200_OK)

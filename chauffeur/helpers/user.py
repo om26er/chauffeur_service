@@ -10,11 +10,7 @@ class UserHelpers:
     user = None
 
     def __init__(self, email):
-        self.email = email
-        try:
-            self.user = User.objects.get(email=self.email)
-        except User.DoesNotExist:
-            self.user = None
+        self.user = User.objects.get(email=email)
 
     def exists(self):
         return self.user is not None
