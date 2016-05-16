@@ -1,8 +1,11 @@
+import datetime
+
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from rest_framework.generics import (
-    CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, RetrieveAPIView)
+    CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, UpdateAPIView)
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -13,7 +16,9 @@ from chauffeur.serializers import (
 from chauffeur import permissions as custom_permissions
 from chauffeur import helpers
 from chauffeur.helpers.user import UserHelpers
-from chauffeur.helpers import location as location_helpers
+from chauffeur.helpers import (
+    location as location_helpers,
+    driver as driver_helpers)
 
 
 class CustomerRegistrationView(CreateAPIView):
@@ -292,13 +297,46 @@ class ActivationKeyView(APIView):
             return Response(status=status.HTTP_200_OK)
 
 
-class HireRequestView(CreateAPIView):
-    serializer_class = HireRequestSerializer
+class HireRequestView(APIView):
     permission_classes = (
         permissions.IsAuthenticated, custom_permissions.IsCustomer, )
 
+    def _get_driver(self, id):
+        try:
+            return User.objects.get(id=id)
+        except User.DoesNotExist:
+            return None
+
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+        request.data.update({'customer': self.request.user.id})
+        driver_id = int(request.data.get('driver'))
+        start_time = request.data.get('start_time')
+        time_span = datetime.timedelta(
+            minutes=int(request.data.get('time_span')))
+
+        driver = self._get_driver(id=driver_id)
+        start_time = helpers.get_formatted_time_from_string(start_time)
+        if start_time < timezone.now():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if driver_helpers.is_driver_available_for_hire(driver, start_time,
+                                                       start_time + time_span):
+            serializer = HireRequestSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                helpers.send_hire_request_push_notification(
+                    driver.push_notification_key, serializer.data)
+                return Response(
+                    data=serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(status=status.HTTP_409_CONFLICT)
 
 
+class HireResponseView(UpdateAPIView):
+    serializer_class = HireRequestSerializer
+    permission_classes = (
+        permissions.IsAuthenticated, custom_permissions.IsDriver, )
 

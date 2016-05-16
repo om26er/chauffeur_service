@@ -30,6 +30,7 @@ urlpatterns = [
         chauffeur_views.DriverView.as_view()),
 
     url(r'^api/hire$', chauffeur_views.HireRequestView.as_view()),
-    url(r'^api/filter_drivers', chauffeur_views.FilterDriversView.as_view()),
+    url(r'^api/hire_response', chauffeur_views.HireResponseView.as_view()),
+    url(r'^api/filter_drivers$', chauffeur_views.FilterDriversView.as_view()),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -15,7 +15,6 @@ from chauffeur.helpers import (
 
 ACTIVATION_KEY_DEFAULT = -1
 PASSWORD_RESET_KEY_DEFAULT = -1
-HIRE_REQUEST_STATUS_DEFAULT = -1
 
 USER_TYPE_CUSTOMER = 0
 USER_TYPE_DRIVER = 1
@@ -52,6 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     activation_key = models.IntegerField(default=ACTIVATION_KEY_DEFAULT)
     password_reset_key = models.IntegerField(
         default=PASSWORD_RESET_KEY_DEFAULT)
+    push_notification_key = models.CharField(max_length=255, blank=True)
 
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True)
@@ -109,7 +109,7 @@ class HireRequest(models.Model):
     driver = models.ForeignKey(User, blank=False, related_name='driver')
     start_time = models.DateTimeField(blank=False)
     time_span = models.IntegerField(blank=False)
-    status = models.IntegerField(default=HIRE_REQUEST_STATUS_DEFAULT)
+    status = models.IntegerField(default=HIRE_REQUEST_PENDING)
 
     @property
     def end_time(self):
@@ -122,3 +122,15 @@ class HireRequest(models.Model):
     @property
     def grace_post(self):
         return self.end_time + SERVICE_GRACE_PERIOD
+
+    @property
+    def driver_name(self):
+        return self.driver.full_name
+
+    @property
+    def driver_email(self):
+        return self.driver.email
+
+    def __str__(self):
+        return 'Hire Request by {} at {}'.format(
+            self.driver.email, self.start_time.__str__())

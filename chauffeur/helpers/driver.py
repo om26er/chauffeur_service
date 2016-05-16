@@ -1,3 +1,5 @@
+import datetime
+
 from chauffeur.models import (
     HireRequest, HIRE_REQUEST_ACCEPTED, HIRE_REQUEST_DONE,
     HIRE_REQUEST_INPROGRESS, SERVICE_GRACE_PERIOD)
@@ -11,16 +13,13 @@ def _does_time_overlap(new_start, new_stop, old_start, old_stop):
     if old_start > new_stop:
         return False
 
-    if new_start < old_start < new_stop:
+    if new_start <= old_start <= new_stop:
         return True
 
-    if old_start < new_start and new_stop < old_stop:
+    if old_start <= new_start and new_stop <= old_stop:
         return True
 
-    if old_start < new_start and new_stop > old_stop:
-        return True
-
-    if old_stop < new_start:
+    if new_start > old_stop:
         return False
 
     return False

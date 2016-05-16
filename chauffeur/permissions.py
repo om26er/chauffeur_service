@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from chauffeur.models import USER_TYPE_CUSTOMER
+from chauffeur.models import USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
 
 
 class IsOwner(permissions.BasePermission):
@@ -19,3 +19,11 @@ class IsCustomer(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.user.user_type == USER_TYPE_CUSTOMER
+
+
+class IsDriver(permissions.BasePermission):
+
+    message = 'Only user of type \'Driver\' is allowed to respond.'
+
+    def has_permission(self, request, view):
+        return request.user.user_type == USER_TYPE_DRIVER
