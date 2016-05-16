@@ -8,11 +8,12 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 
 from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
-from chauffeur.serializers import CustomerSerializer, DriverSerializer
+from chauffeur.serializers import (
+    CustomerSerializer, DriverSerializer, HireRequestSerializer)
 from chauffeur import permissions as custom_permissions
 from chauffeur import helpers
 from chauffeur.helpers.user import UserHelpers
-from chauffeur.helpers.location import LocationCalculator
+from chauffeur.helpers import location as location_helpers
 
 
 class CustomerRegistrationView(CreateAPIView):
@@ -212,18 +213,19 @@ class UserStatusView(APIView):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
 
-class DriversAroundView(ListAPIView):
+class FilterDriversView(ListAPIView):
 
     permission_classes = (permissions.IsAuthenticated, )
     serializer_class = DriverSerializer
 
     def get_queryset(self):
-        location_calculator = LocationCalculator(self.request.user)
-        return location_calculator.get_drivers_around(
+        return location_helpers.filter_available_drivers(
+            base_location=self.request.query_params.get('base_location', None),
             radius=self.request.query_params.get('radius', None),
-            base_location=self.request.query_params.get('base_location', None))
+            start_time=self.request.query_params.get('start_time', None),
+            time_span=self.request.query_params.get('time_span', None))
 
-    def _validate_data(self, radius, base_location):
+    def _validate_data(self, radius, base_location, start_time, time_span):
         message = {}
         if not radius:
             message.update({'radius': ['Field is mandatory.']})
@@ -231,12 +233,21 @@ class DriversAroundView(ListAPIView):
         if not base_location:
             message.update({'base_location': ['Field is mandatory.']})
 
+        if not start_time:
+            message.update({'start_time': ['Field is mandatory.']})
+
+        if not time_span:
+            message.update({'time_span': ['Field is mandatory.']})
+
         return message
 
     def get(self, request, *args, **kwargs):
         radius = request.query_params.get('radius', None)
         base_location = request.query_params.get('base_location', None)
-        message = self._validate_data(radius, base_location)
+        start_time = request.query_params.get('start_time', None)
+        time_span = request.query_params.get('time_span', None)
+        message = self._validate_data(
+            radius, base_location, start_time, time_span)
         if len(message) > 0:
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
         return super().get(request, *args, **kwargs)
@@ -279,3 +290,15 @@ class ActivationKeyView(APIView):
             helpers.send_account_activation_email(
                 user_account.user.email, user_account.user.activation_key)
             return Response(status=status.HTTP_200_OK)
+
+
+class HireRequestView(CreateAPIView):
+    serializer_class = HireRequestSerializer
+    permission_classes = (
+        permissions.IsAuthenticated, custom_permissions.IsCustomer, )
+
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+

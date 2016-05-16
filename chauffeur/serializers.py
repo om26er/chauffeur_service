@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
+from chauffeur.models import (
+    User, HireRequest, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER)
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -70,3 +71,10 @@ class DriverSerializer(serializers.ModelSerializer):
             del validated_data['password']
             instance.set_password(password)
         return super().update(instance, validated_data)
+
+
+class HireRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = HireRequest
+        fields = ('requester', 'requestee', 'date_time')

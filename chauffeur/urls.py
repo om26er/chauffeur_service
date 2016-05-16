@@ -29,5 +29,7 @@ urlpatterns = [
     url(r'^api/drivers/(?P<pk>[0-9]+)$',
         chauffeur_views.DriverView.as_view()),
 
-    url(r'^api/drivers_around$', chauffeur_views.DriversAroundView.as_view()),
+    url(r'^api/hire$', chauffeur_views.HireRequestView.as_view()),
+    url(r'^api/filter_drivers', chauffeur_views.FilterDriversView.as_view()),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

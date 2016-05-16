@@ -109,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = None
 
 USE_I18N = True
 
@@ -137,6 +137,8 @@ def read_password():
             return config.get('credentials', 'email_password')
         except configparser.NoOptionError or configparser.NoSectionError:
             return None
+
+    return None
 
 
 EMAIL_USE_TLS = True
