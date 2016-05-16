@@ -1,7 +1,10 @@
+from django.utils import timezone
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
+from chauffeur.models import (
+    User, HireRequest, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER)
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -53,10 +56,9 @@ class DriverSerializer(serializers.ModelSerializer):
                   'number_of_hires', 'bio')
 
     def _append_location_time_if_location_request(self, validated_data):
-        from datetime import datetime
         location = validated_data.get('location')
         if location:
-            validated_data.update({'location_last_updated': datetime.now()})
+            validated_data.update({'location_last_updated': timezone.now()})
 
     def create(self, validated_data):
         self._append_location_time_if_location_request(validated_data)
@@ -70,3 +72,19 @@ class DriverSerializer(serializers.ModelSerializer):
             del validated_data['password']
             instance.set_password(password)
         return super().update(instance, validated_data)
+
+
+class HireRequestSerializer(serializers.ModelSerializer):
+    start_time = serializers.DateTimeField(required=True)
+    time_span = serializers.IntegerField(required=True)
+    driver_name = serializers.CharField(read_only=True)
+    driver_email = serializers.EmailField(read_only=True)
+
+    class Meta:
+        model = HireRequest
+        fields = (
+            'customer', 'driver', 'start_time', 'end_time', 'time_span',
+            'status', 'driver_name', 'driver_email', 'id')
+
+    def create(self, validated_data):
+        return super().create(validated_data)

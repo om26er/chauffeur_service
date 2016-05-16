@@ -1,4 +1,5 @@
-from django.conf import settings
+from datetime import timedelta
+
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.db.models.signals import post_save
@@ -6,6 +7,7 @@ from django.dispatch import receiver
 
 from rest_framework.authtoken.models import Token
 
+from chauffeur_service.settings import AUTH_USER_MODEL
 from chauffeur.managers import CustomUserManager
 from chauffeur.helpers import (
     send_account_activation_email, generate_random_key)
@@ -17,12 +19,20 @@ PASSWORD_RESET_KEY_DEFAULT = -1
 USER_TYPE_CUSTOMER = 0
 USER_TYPE_DRIVER = 1
 
+HIRE_REQUEST_PENDING = 1
+HIRE_REQUEST_ACCEPTED = 2
+HIRE_REQUEST_DECLINED = 3
+HIRE_REQUEST_INPROGRESS = 4
+HIRE_REQUEST_DONE = 5
+
+SERVICE_GRACE_PERIOD = timedelta(minutes=60)
+
 
 USER_TYPE_CHOICES = (
     (USER_TYPE_CUSTOMER, 'Customer'), (USER_TYPE_DRIVER, 'Driver'))
 
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+@receiver(post_save, sender=AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
@@ -41,6 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     activation_key = models.IntegerField(default=ACTIVATION_KEY_DEFAULT)
     password_reset_key = models.IntegerField(
         default=PASSWORD_RESET_KEY_DEFAULT)
+    push_notification_key = models.CharField(max_length=255, blank=True)
 
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True)
@@ -90,3 +101,36 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_staff(self):
         return self.is_admin
+
+
+class HireRequest(models.Model):
+    customer = models.ForeignKey(
+        AUTH_USER_MODEL, blank=False, related_name='customer')
+    driver = models.ForeignKey(User, blank=False, related_name='driver')
+    start_time = models.DateTimeField(blank=False)
+    time_span = models.IntegerField(blank=False)
+    status = models.IntegerField(default=HIRE_REQUEST_PENDING)
+
+    @property
+    def end_time(self):
+        return self.start_time + timedelta(minutes=self.time_span)
+
+    @property
+    def grace_pre(self):
+        return self.start_time - SERVICE_GRACE_PERIOD
+
+    @property
+    def grace_post(self):
+        return self.end_time + SERVICE_GRACE_PERIOD
+
+    @property
+    def driver_name(self):
+        return self.driver.full_name
+
+    @property
+    def driver_email(self):
+        return self.driver.email
+
+    def __str__(self):
+        return 'Hire Request by {} at {}'.format(
+            self.driver.email, self.start_time.__str__())

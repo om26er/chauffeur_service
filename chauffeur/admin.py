@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
+from chauffeur.models import (
+    User, HireRequest, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER)
 
 
 class CustomerProxy(User):
@@ -44,8 +45,8 @@ class DriverAdmin(admin.ModelAdmin):
 class CustomerAdmin(admin.ModelAdmin):
     fields = ('is_active', 'email', 'password', 'full_name',
               'phone_number', 'photo', 'location', 'number_of_hires',
-              'vehicle_type', 'vehicle_category', 'vehicle_make',
-              'vehicle_model', 'initial_app_payment')
+              'vehicle_type', 'vehicle_make', 'vehicle_model',
+              'initial_app_payment')
 
     class Meta:
         model = CustomerProxy
@@ -69,7 +70,13 @@ class PanelAdmin(admin.ModelAdmin):
         return self.model.objects.filter(is_admin=True)
 
 
+class HireRequestAdmin(admin.ModelAdmin):
+    class Meta:
+        model = HireRequest
+
+
 admin.site.register(CustomerProxy, CustomerAdmin)
 admin.site.register(DriverProxy, DriverAdmin)
 admin.site.register(PanelAdminProxy, PanelAdmin)
+admin.site.register(HireRequest, HireRequestAdmin)
 admin.site.unregister(Group)

@@ -1,3 +1,5 @@
+from rest_framework.authtoken.models import Token
+
 from chauffeur.models import (
     User, ACTIVATION_KEY_DEFAULT, PASSWORD_RESET_KEY_DEFAULT,
     USER_TYPE_CUSTOMER, USER_TYPE_DRIVER)
@@ -8,11 +10,7 @@ class UserHelpers:
     user = None
 
     def __init__(self, email):
-        self.email = email
-        try:
-            self.user = User.objects.get(email=self.email)
-        except User.DoesNotExist:
-            self.user = None
+        self.user = User.objects.get(email=email)
 
     def exists(self):
         return self.user is not None
@@ -52,3 +50,6 @@ class UserHelpers:
             return DriverSerializer(self.user)
         else:
             raise ValueError('Invalid user type')
+
+    def get_token(self):
+        return Token.objects.get(user_id=self.user.id).key
