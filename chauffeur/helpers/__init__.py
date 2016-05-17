@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 
 from gcm import GCM
 
-APP_PUSH_ID = 'AIzaSyAKqZ5WrMh3ZinQLkVH8ftdE2qi1DRCCZg'
+APP_PUSH_ID = 'AIzaSyDQQnF3t7ZtecQzlQhthWMsyIXnusS0sKY'
 
 
 def generate_random_key():
@@ -81,16 +81,10 @@ def send_superseded_notification(driver, accepted_request, data):
 
 
 def _send_push_notification(push_key, data):
-    if True:
-        print("Sending push")
-        return
     gcm = GCM(APP_PUSH_ID)
     gcm.plaintext_request(registration_id=push_key, data=data)
 
 
 def _send_push_notifications(push_keys, data):
-    if True:
-        print("Sending push")
-        return
     gcm = GCM(APP_PUSH_ID)
     gcm.json_request(registration_ids=push_keys, data=data)
