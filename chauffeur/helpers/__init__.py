@@ -6,10 +6,6 @@ from django.core.mail import send_mail
 
 from gcm import GCM
 
-from chauffeur.helpers import driver as driver_helpers
-from chauffeur.helpers.user import UserHelpers
-
-
 APP_PUSH_ID = 'AIzaSyAKqZ5WrMh3ZinQLkVH8ftdE2qi1DRCCZg'
 
 
@@ -73,6 +69,8 @@ def send_hire_response_push_notification(push_key, data):
 
 
 def send_superseded_notification(driver, accepted_request, data):
+    from chauffeur.helpers import driver as driver_helpers
+    from chauffeur.helpers.user import UserHelpers
     start_time = accepted_request.start_time
     end_time = start_time + accepted_request.time_span
     conflicts = driver_helpers.get_conflicting_hire_requests(
