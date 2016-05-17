@@ -9,8 +9,8 @@ from chauffeur.serializers import CustomerSerializer, DriverSerializer
 class UserHelpers:
     user = None
 
-    def __init__(self, email):
-        self.user = User.objects.get(email=email)
+    def __init__(self, **kwargs):
+        self.user = User.objects.get(**kwargs)
 
     def exists(self):
         return self.user is not None
@@ -53,3 +53,10 @@ class UserHelpers:
 
     def get_token(self):
         return Token.objects.get(user_id=self.user.id).key
+
+    def append_hire_count(self):
+        self.user.number_of_hires += 1
+        self.user.save()
+
+    def get_push_key(self):
+        return self.user.push_notification_key

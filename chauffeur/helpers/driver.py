@@ -1,7 +1,5 @@
-import datetime
-
 from chauffeur.models import (
-    HireRequest, HIRE_REQUEST_ACCEPTED, HIRE_REQUEST_DONE,
+    User, HireRequest, HIRE_REQUEST_ACCEPTED, HIRE_REQUEST_DONE,
     HIRE_REQUEST_INPROGRESS, SERVICE_GRACE_PERIOD)
 
 
@@ -40,3 +38,22 @@ def is_driver_available_for_hire(driver, start_time, end_time):
             return False
 
     return True
+
+
+def get_conflicting_hire_requests(driver, start_time, end_time):
+    hire_requests = HireRequest.objects.filter(
+        driver=driver.id,
+        status__in=JOB_ACTIVE_STATES)
+
+    request_start = start_time - SERVICE_GRACE_PERIOD
+    request_stop = end_time + SERVICE_GRACE_PERIOD
+
+    result = []
+
+    for request in hire_requests:
+        if _does_time_overlap(
+                request_start, request_stop, request.start_time,
+                request.end_time):
+            result.append(request)
+
+    return result

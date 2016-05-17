@@ -10,7 +10,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 
-from chauffeur.models import User, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER
+from chauffeur.models import (
+    User, HireRequest, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER,
+    HIRE_REQUEST_ACCEPTED, HIRE_REQUEST_CONFLICT)
 from chauffeur.serializers import (
     CustomerSerializer, DriverSerializer, HireRequestSerializer)
 from chauffeur import permissions as custom_permissions
@@ -335,8 +337,46 @@ class HireRequestView(APIView):
             return Response(status=status.HTTP_409_CONFLICT)
 
 
-class HireResponseView(UpdateAPIView):
-    serializer_class = HireRequestSerializer
+class HireResponseView(APIView):
     permission_classes = (
         permissions.IsAuthenticated, custom_permissions.IsDriver, )
 
+    def _validate_data(self, request_id, status):
+        message = {}
+        if not request_id:
+            message.update({'request_id': ['Field is mandatory.']})
+
+        if not status:
+            message.update({'status': ['Field is mandatory.']})
+
+        return message
+
+    def patch(self, request, *args, **kwargs):
+        request_id = request.data.get('request_id')
+        status = request.data.get('status')
+        message = self._validate_data(request_id, status)
+        if message:
+            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+
+        hire_request = HireRequest.objects.get(id=request_id)
+        serializer = HireRequestSerializer(
+            hire_request, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            customer = UserHelpers(id=hire_request.customer_id)
+            if status == HIRE_REQUEST_ACCEPTED:
+                driver = UserHelpers(id=self.request.user.id)
+                driver.append_hire_count()
+                customer.append_hire_count()
+
+            serializer.save()
+            helpers.send_hire_response_push_notification(
+                customer.get_push_key(), serializer.data)
+
+            superseded_data = serializer.data
+            superseded_data.update({'status', HIRE_REQUEST_CONFLICT})
+            helpers.send_superseded_notification(
+                self.request.user, hire_request, superseded_data)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
