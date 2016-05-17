@@ -255,7 +255,7 @@ class FilterDriversView(ListAPIView):
         time_span = request.query_params.get('time_span', None)
         message = self._validate_data(
             radius, base_location, start_time, time_span)
-        if len(message) > 0:
+        if message:
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
         return super().get(request, *args, **kwargs)
 
@@ -309,12 +309,30 @@ class HireRequestView(APIView):
         except User.DoesNotExist:
             return None
 
+    def _validate_data(self, driver_id, start_time, time_span):
+        message = {}
+        if not driver_id:
+            message.update({'driver_id': ['Field is mandatory.']})
+
+        if not start_time:
+            message.update({'start_time': ['Field is mandatory.']})
+
+        if not time_span:
+            message.update({'time_span': ['Field is mandatory.']})
+
+        return message
+
     def post(self, request, *args, **kwargs):
         request.data.update({'customer': self.request.user.id})
-        driver_id = int(request.data.get('driver'))
+        driver_id = request.data.get('driver')
         start_time = request.data.get('start_time')
-        time_span = datetime.timedelta(
-            minutes=int(request.data.get('time_span')))
+        time_span = request.data.get('time_span')
+        data = self._validate_data(driver_id, start_time, time_span)
+        if data:
+            return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
+
+        driver_id = int(driver_id)
+        time_span = datetime.timedelta(minutes=int(time_span))
 
         driver = self._get_driver(id=driver_id)
         start_time = helpers.get_formatted_time_from_string(start_time)
@@ -353,18 +371,22 @@ class HireResponseView(APIView):
 
     def patch(self, request, *args, **kwargs):
         request_id = request.data.get('request_id')
-        status = request.data.get('status')
-        message = self._validate_data(request_id, status)
-        if message:
-            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+        new_status = request.data.get('status')
+        data = self._validate_data(request_id, new_status)
+        if data:
+            return Response(data=data, status=400)
 
         hire_request = HireRequest.objects.get(id=request_id)
+
+        if hire_request.status == int(new_status):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         serializer = HireRequestSerializer(
             hire_request, data=request.data, partial=True)
 
         if serializer.is_valid():
             customer = UserHelpers(id=hire_request.customer_id)
-            if status == HIRE_REQUEST_ACCEPTED:
+            if new_status == HIRE_REQUEST_ACCEPTED:
                 driver = UserHelpers(id=self.request.user.id)
                 driver.append_hire_count()
                 customer.append_hire_count()
@@ -374,9 +396,8 @@ class HireResponseView(APIView):
                 customer.get_push_key(), serializer.data)
 
             superseded_data = serializer.data
-            superseded_data.update({'status', HIRE_REQUEST_CONFLICT})
+            superseded_data.update({'status': HIRE_REQUEST_CONFLICT})
             helpers.send_superseded_notification(
                 self.request.user, hire_request, superseded_data)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

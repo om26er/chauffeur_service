@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import threading
 
 from django.conf import settings
@@ -72,7 +72,7 @@ def send_superseded_notification(driver, accepted_request, data):
     from chauffeur.helpers import driver as driver_helpers
     from chauffeur.helpers.user import UserHelpers
     start_time = accepted_request.start_time
-    end_time = start_time + accepted_request.time_span
+    end_time = start_time + timedelta(minutes=accepted_request.time_span)
     conflicts = driver_helpers.get_conflicting_hire_requests(
         driver, start_time, end_time)
     push_ids = [UserHelpers(id=conflict.customer_id).get_push_key()
@@ -81,10 +81,16 @@ def send_superseded_notification(driver, accepted_request, data):
 
 
 def _send_push_notification(push_key, data):
+    if True:
+        print("Sending push")
+        return
     gcm = GCM(APP_PUSH_ID)
     gcm.plaintext_request(registration_id=push_key, data=data)
 
 
 def _send_push_notifications(push_keys, data):
+    if True:
+        print("Sending push")
+        return
     gcm = GCM(APP_PUSH_ID)
     gcm.json_request(registration_ids=push_keys, data=data)
