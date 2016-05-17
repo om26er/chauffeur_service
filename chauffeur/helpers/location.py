@@ -24,7 +24,7 @@ def get_location_from_string(location_string):
 
 def are_locations_within_radius(base_location, remote_location, radius):
     distance = vincenty(base_location, remote_location).kilometers
-    return float(radius) <= distance
+    return distance <= float(radius)
 
 
 def _resolve_time(time):

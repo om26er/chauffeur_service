@@ -1,9 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import threading
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.utils import timezone
+
+from gcm import GCM
+
+APP_PUSH_ID = 'AIzaSyDQQnF3t7ZtecQzlQhthWMsyIXnusS0sKY'
 
 
 def generate_random_key():
@@ -59,7 +62,29 @@ def send_hire_request_push_notification(push_key, data):
     thread.start()
 
 
+def send_hire_response_push_notification(push_key, data):
+    thread = threading.Thread(
+        target=_send_push_notification, args=(push_key, data))
+    thread.start()
+
+
+def send_superseded_notification(driver, accepted_request, data):
+    from chauffeur.helpers import driver as driver_helpers
+    from chauffeur.helpers.user import UserHelpers
+    start_time = accepted_request.start_time
+    end_time = start_time + timedelta(minutes=accepted_request.time_span)
+    conflicts = driver_helpers.get_conflicting_hire_requests(
+        driver, start_time, end_time)
+    push_ids = [UserHelpers(id=conflict.customer_id).get_push_key()
+                for conflict in conflicts]
+    _send_push_notifications(push_keys=push_ids, data=data)
+
+
 def _send_push_notification(push_key, data):
-    from gcm import GCM
-    gcm = GCM('AIzaSyAKqZ5WrMh3ZinQLkVH8ftdE2qi1DRCCZg')
+    gcm = GCM(APP_PUSH_ID)
     gcm.plaintext_request(registration_id=push_key, data=data)
+
+
+def _send_push_notifications(push_keys, data):
+    gcm = GCM(APP_PUSH_ID)
+    gcm.json_request(registration_ids=push_keys, data=data)
