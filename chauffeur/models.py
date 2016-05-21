@@ -57,11 +57,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True)
     number_of_hires = models.IntegerField(blank=True, default=0)
+    review_count = models.IntegerField(default=0, blank=True)
+    review_stars = models.FloatField(default=0.0, blank=True)
 
     # Driver specific fields
     driving_experience = models.CharField(max_length=255, blank=True)
     location = models.CharField(max_length=255, blank=True)
     location_last_updated = models.DateTimeField(blank=True, null=True)
+    status = models.IntegerField(default=-1)
     bio = models.CharField(max_length=2000, blank=True)
 
     # Customer specific fields

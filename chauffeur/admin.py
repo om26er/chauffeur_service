@@ -28,9 +28,10 @@ class PanelAdminProxy(User):
 
 class DriverAdmin(admin.ModelAdmin):
 
-    fields = ('is_active', 'email', 'password', 'full_name',
+    fields = ('is_active', 'status', 'email', 'password', 'full_name',
               'phone_number', 'photo', 'location', 'location_last_updated',
-              'driving_experience', 'number_of_hires', 'bio')
+              'driving_experience', 'number_of_hires', 'bio', 'review_count',
+              'review_stars')
 
     class Meta:
         model = DriverProxy
@@ -46,7 +47,7 @@ class CustomerAdmin(admin.ModelAdmin):
     fields = ('is_active', 'email', 'password', 'full_name',
               'phone_number', 'photo', 'location', 'number_of_hires',
               'vehicle_type', 'vehicle_make', 'vehicle_model',
-              'initial_app_payment')
+              'initial_app_payment', 'review_count', 'review_stars')
 
     class Meta:
         model = CustomerProxy
