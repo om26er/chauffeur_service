@@ -58,23 +58,23 @@ class User(AbstractBaseUser, PermissionsMixin):
     photo = models.ImageField(blank=True)
     number_of_hires = models.IntegerField(blank=True, default=0)
     review_count = models.IntegerField(default=0, blank=True)
-    review_stars = models.FloatField(default=0.0, blank=True)
+    review_stars = models.FloatField(default=-1.0, blank=True)
 
     # Driver specific fields
     driving_experience = models.CharField(max_length=255, blank=True)
     location = models.CharField(max_length=255, blank=True)
     location_last_updated = models.DateTimeField(blank=True, null=True)
-    status = models.IntegerField(default=-1)
+    status = models.IntegerField(default=1)
     bio = models.CharField(max_length=2000, blank=True)
-    location_reporting_type = models.IntegerField(default=-1)
-    location_reporting_interval = models.IntegerField(default=-1)
+    location_reporting_type = models.IntegerField(default=1)
+    location_reporting_interval = models.IntegerField(default=2)
 
     # Customer specific fields
     vehicle_type = models.IntegerField(default=-1)
     vehicle_make = models.CharField(max_length=255, blank=True)
     vehicle_model = models.CharField(max_length=255, blank=True)
     initial_app_payment = models.FloatField(blank=True, default=0.0)
-    driver_filter_radius = models.IntegerField(default=-1   )
+    driver_filter_radius = models.IntegerField(default=15)
 
     objects = CustomUserManager()
 
