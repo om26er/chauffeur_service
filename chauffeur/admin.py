@@ -31,7 +31,8 @@ class DriverAdmin(admin.ModelAdmin):
     fields = ('is_active', 'status', 'email', 'password', 'full_name',
               'phone_number', 'photo', 'location', 'location_last_updated',
               'driving_experience', 'number_of_hires', 'bio', 'review_count',
-              'review_stars')
+              'review_stars', 'location_reporting_type',
+              'location_reporting_interval')
 
     class Meta:
         model = DriverProxy
@@ -47,7 +48,8 @@ class CustomerAdmin(admin.ModelAdmin):
     fields = ('is_active', 'email', 'password', 'full_name',
               'phone_number', 'photo', 'location', 'number_of_hires',
               'vehicle_type', 'vehicle_make', 'vehicle_model',
-              'initial_app_payment', 'review_count', 'review_stars')
+              'initial_app_payment', 'review_count', 'review_stars',
+              'driver_filter_radius')
 
     class Meta:
         model = CustomerProxy

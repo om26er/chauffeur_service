@@ -66,12 +66,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     location_last_updated = models.DateTimeField(blank=True, null=True)
     status = models.IntegerField(default=-1)
     bio = models.CharField(max_length=2000, blank=True)
+    location_reporting_type = models.IntegerField(default=-1)
+    location_reporting_interval = models.IntegerField(default=-1)
 
     # Customer specific fields
     vehicle_type = models.IntegerField(default=-1)
     vehicle_make = models.CharField(max_length=255, blank=True)
     vehicle_model = models.CharField(max_length=255, blank=True)
     initial_app_payment = models.FloatField(blank=True, default=0.0)
+    driver_filter_radius = models.IntegerField(default=-1   )
 
     objects = CustomUserManager()
 

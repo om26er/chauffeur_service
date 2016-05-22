@@ -46,7 +46,7 @@ class CustomerSerializer(serializers.ModelSerializer):
                   'email', 'phone_number', 'photo',
                   'number_of_hires', 'vehicle_type', 'vehicle_make',
                   'vehicle_model', 'initial_app_payment',
-                  'review_count', 'review_stars')
+                  'review_count', 'review_stars', 'driver_filter_radius')
 
     def create(self, validated_data):
         validated_data.update({'user_type': USER_TYPE_CUSTOMER})
@@ -76,7 +76,8 @@ class DriverSerializer(serializers.ModelSerializer):
                   'email', 'phone_number', 'photo', 'location',
                   'location_last_updated', 'driving_experience',
                   'number_of_hires', 'bio', 'status',
-                  'review_count', 'review_stars')
+                  'review_count', 'review_stars', 'location_reporting_type',
+                  'location_reporting_interval')
 
     def _append_location_time_if_location_request(self, validated_data):
         location = validated_data.get('location')
