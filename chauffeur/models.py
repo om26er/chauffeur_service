@@ -53,6 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     user_type = models.IntegerField(
         blank=False, default=-1, choices=USER_TYPE_CHOICES)
+    transmission_type = models.IntegerField(blank=False, default=-1)
     activation_key = models.IntegerField(default=ACTIVATION_KEY_DEFAULT)
     password_reset_key = models.IntegerField(
         default=PASSWORD_RESET_KEY_DEFAULT)
@@ -72,7 +73,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     bio = models.CharField(max_length=2000, blank=True)
     location_reporting_type = models.IntegerField(default=1)
     location_reporting_interval = models.IntegerField(default=2)
-    transmission_type = models.IntegerField(blank=False, default=-1)
 
     # Customer specific fields
     vehicle_type = models.IntegerField(default=-1)

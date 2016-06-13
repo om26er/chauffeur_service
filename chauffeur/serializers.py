@@ -44,6 +44,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     vehicle_make = serializers.CharField(required=True)
     vehicle_model = serializers.CharField(required=True)
     review_count = serializers.IntegerField(read_only=True)
+    transmission_type = serializers.IntegerField(required=True)
 
     class Meta:
         model = User
@@ -63,6 +64,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             'review_count',
             'review_stars',
             'driver_filter_radius',
+            'transmission_type',
         )
 
     def create(self, validated_data):
