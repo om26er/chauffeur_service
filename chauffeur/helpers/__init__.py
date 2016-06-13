@@ -21,7 +21,8 @@ def _send_account_activation_email(email, activation_key):
         'Account activation key: {}'.format(activation_key),
         settings.EMAIL_HOST_USER,
         [str(email)],
-        fail_silently=False)
+        fail_silently=False
+    )
 
 
 def _send_password_reset_email(email, password_reset_key):
@@ -30,12 +31,15 @@ def _send_password_reset_email(email, password_reset_key):
         'Password reset key: {}'.format(password_reset_key),
         settings.EMAIL_HOST_USER,
         [str(email)],
-        fail_silently=False)
+        fail_silently=False
+    )
 
 
 def send_account_activation_email(email, key):
     thread = threading.Thread(
-        target=_send_account_activation_email, args=(email, key))
+        target=_send_account_activation_email,
+        args=(email, key)
+    )
     thread.start()
 
 
@@ -48,7 +52,9 @@ def _generate_password_reset_key_and_send_email(user):
 
 def generate_password_reset_key_and_send_email(user):
     thread = threading.Thread(
-        target=_generate_password_reset_key_and_send_email, args=(user,))
+        target=_generate_password_reset_key_and_send_email,
+        args=(user,)
+    )
     thread.start()
 
 
@@ -58,13 +64,17 @@ def get_formatted_time_from_string(time_string):
 
 def send_hire_request_push_notification(push_key, data):
     thread = threading.Thread(
-        target=_send_push_notification, args=(push_key, data))
+        target=_send_push_notification,
+        args=(push_key, data)
+    )
     thread.start()
 
 
 def send_hire_response_push_notification(push_key, data):
     thread = threading.Thread(
-        target=_send_push_notification, args=(push_key, data))
+        target=_send_push_notification,
+        args=(push_key, data)
+    )
     thread.start()
 
 
@@ -74,7 +84,10 @@ def send_superseded_notification(driver, accepted_request, data):
     start_time = accepted_request.start_time
     end_time = start_time + timedelta(minutes=accepted_request.time_span)
     conflicts = driver_helpers.get_conflicting_hire_requests(
-        driver, start_time, end_time)
+        driver,
+        start_time,
+        end_time
+    )
     push_ids = [UserHelpers(id=conflict.customer_id).get_push_key()
                 for conflict in conflicts]
     _send_push_notifications(push_keys=push_ids, data=data)

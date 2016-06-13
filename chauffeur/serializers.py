@@ -4,7 +4,11 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from chauffeur.models import (
-    User, HireRequest, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER)
+    User,
+    HireRequest,
+    USER_TYPE_CUSTOMER,
+    USER_TYPE_DRIVER,
+)
 
 
 def _calculate_new_review_average_if_review_request(
@@ -31,7 +35,8 @@ class CustomerSerializer(serializers.ModelSerializer):
     user_type = serializers.IntegerField(read_only=True)
     email = serializers.EmailField(
         required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())])
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
     password = serializers.CharField(write_only=True)
     full_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
@@ -42,11 +47,23 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'full_name', 'password', 'user_type',
-                  'email', 'phone_number', 'photo',
-                  'number_of_hires', 'vehicle_type', 'vehicle_make',
-                  'vehicle_model', 'initial_app_payment',
-                  'review_count', 'review_stars', 'driver_filter_radius')
+        fields = (
+            'id',
+            'full_name',
+            'password',
+            'user_type',
+            'email',
+            'phone_number',
+            'photo',
+            'number_of_hires',
+            'vehicle_type',
+            'vehicle_make',
+            'vehicle_model',
+            'initial_app_payment',
+            'review_count',
+            'review_stars',
+            'driver_filter_radius',
+        )
 
     def create(self, validated_data):
         validated_data.update({'user_type': USER_TYPE_CUSTOMER})
@@ -69,15 +86,30 @@ class DriverSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(required=True)
     driving_experience = serializers.CharField(required=True)
     review_count = serializers.IntegerField(read_only=True)
+    transmission_type = serializers.IntegerField(required=True)
 
     class Meta:
         model = User
-        fields = ('id', 'full_name', 'password', 'user_type',
-                  'email', 'phone_number', 'photo', 'location',
-                  'location_last_updated', 'driving_experience',
-                  'number_of_hires', 'bio', 'status',
-                  'review_count', 'review_stars', 'location_reporting_type',
-                  'location_reporting_interval')
+        fields = (
+            'id',
+            'full_name',
+            'password',
+            'user_type',
+            'email',
+            'phone_number',
+            'photo',
+            'location',
+            'location_last_updated',
+            'driving_experience',
+            'number_of_hires',
+            'bio',
+            'status',
+            'review_count',
+            'review_stars',
+            'location_reporting_type',
+            'location_reporting_interval',
+            'transmission_type',
+        )
 
     def _append_location_time_if_location_request(self, validated_data):
         location = validated_data.get('location')
@@ -106,8 +138,16 @@ class HireRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = HireRequest
         fields = (
-            'customer', 'driver', 'start_time', 'end_time', 'time_span',
-            'status', 'driver_name', 'driver_email', 'id')
+            'customer',
+            'driver',
+            'start_time',
+            'end_time',
+            'time_span',
+            'status',
+            'driver_name',
+            'driver_email',
+            'id',
+        )
 
     def create(self, validated_data):
         return super().create(validated_data)

@@ -2,7 +2,11 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 
 from chauffeur.models import (
-    User, HireRequest, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER)
+    User,
+    HireRequest,
+    USER_TYPE_CUSTOMER,
+    USER_TYPE_DRIVER
+)
 
 
 class CustomerProxy(User):
@@ -28,11 +32,24 @@ class PanelAdminProxy(User):
 
 class DriverAdmin(admin.ModelAdmin):
 
-    fields = ('is_active', 'status', 'email', 'password', 'full_name',
-              'phone_number', 'photo', 'location', 'location_last_updated',
-              'driving_experience', 'number_of_hires', 'bio', 'review_count',
-              'review_stars', 'location_reporting_type',
-              'location_reporting_interval')
+    fields = (
+        'is_active',
+        'status',
+        'email',
+        'password',
+        'full_name',
+        'phone_number',
+        'photo',
+        'location',
+        'location_last_updated',
+        'driving_experience',
+        'number_of_hires',
+        'bio',
+        'review_count',
+        'review_stars',
+        'location_reporting_type',
+        'location_reporting_interval',
+    )
 
     class Meta:
         model = DriverProxy
@@ -45,11 +62,23 @@ class DriverAdmin(admin.ModelAdmin):
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    fields = ('is_active', 'email', 'password', 'full_name',
-              'phone_number', 'photo', 'location', 'number_of_hires',
-              'vehicle_type', 'vehicle_make', 'vehicle_model',
-              'initial_app_payment', 'review_count', 'review_stars',
-              'driver_filter_radius')
+    fields = (
+        'is_active',
+        'email',
+        'password',
+        'full_name',
+        'phone_number',
+        'photo',
+        'location',
+        'number_of_hires',
+        'vehicle_type',
+        'vehicle_make',
+        'vehicle_model',
+        'initial_app_payment',
+        'review_count',
+        'review_stars',
+        'driver_filter_radius',
+    )
 
     class Meta:
         model = CustomerProxy
@@ -62,9 +91,16 @@ class CustomerAdmin(admin.ModelAdmin):
 
 
 class PanelAdmin(admin.ModelAdmin):
-    fields = ('password', 'full_name', 'email',
-              'is_active', 'is_superuser', 'last_login',
-              'groups', 'user_permissions')
+    fields = (
+        'password',
+        'full_name',
+        'email',
+        'is_active',
+        'is_superuser',
+        'last_login',
+        'groups',
+        'user_permissions',
+    )
 
     class Meta:
         model = PanelAdminProxy

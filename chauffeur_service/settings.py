@@ -1,7 +1,12 @@
 import os
 
+from chauffeur_service.setting_helpers import SettingHelpers
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+CONFIG_FILE = os.path.expanduser('~/chauffeur_config.ini')
+config_helpers = SettingHelpers(CONFIG_FILE)
 
 
 # Quick-start development settings - unsuitable for production
@@ -76,9 +81,9 @@ WSGI_APPLICATION = 'chauffeur_service.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'chauffeur',
-        'USER': 'chauffeuruser',
-        'PASSWORD': 'secret_supersecret',
+        'NAME': config_helpers.get_database_credential_by_key('name'),
+        'USER': config_helpers.get_database_credential_by_key('user'),
+        'PASSWORD': config_helpers.get_database_credential_by_key('password'),
         'HOST': '',
         'PORT': '',
     }
@@ -126,24 +131,9 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 MEDIA_URL = '/media/'
 
-
-def read_password():
-    import configparser
-    config_file = os.path.expanduser('~/config.ini')
-    config = configparser.ConfigParser()
-    if os.path.isfile(config_file):
-        config.read(config_file)
-        try:
-            return config.get('credentials', 'email_password')
-        except configparser.NoOptionError or configparser.NoSectionError:
-            return None
-
-    return None
-
-
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'byteshaft@gmail.com'
-EMAIL_HOST_PASSWORD = read_password()
-EMAIL_PORT = 587
+EMAIL_HOST = config_helpers.get_email_credential_by_key('host')
+EMAIL_HOST_USER = config_helpers.get_email_credential_by_key('email')
+EMAIL_HOST_PASSWORD = config_helpers.get_email_credential_by_key('password')
+EMAIL_PORT = config_helpers.get_email_credential_by_key('port')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
