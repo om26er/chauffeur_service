@@ -5,22 +5,34 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from rest_framework.generics import (
-    CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, UpdateAPIView)
+    CreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    ListAPIView,
+)
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 
 from chauffeur.models import (
-    User, HireRequest, USER_TYPE_CUSTOMER, USER_TYPE_DRIVER,
-    HIRE_REQUEST_ACCEPTED, HIRE_REQUEST_CONFLICT)
+    User,
+    HireRequest,
+    USER_TYPE_CUSTOMER,
+    USER_TYPE_DRIVER,
+    HIRE_REQUEST_ACCEPTED,
+    HIRE_REQUEST_CONFLICT,
+)
 from chauffeur.serializers import (
-    CustomerSerializer, DriverSerializer, HireRequestSerializer)
+    CustomerSerializer,
+    DriverSerializer,
+    HireRequestSerializer,
+)
 from chauffeur import permissions as custom_permissions
 from chauffeur import helpers
 from chauffeur.helpers.user import UserHelpers
 from chauffeur.helpers import (
     location as location_helpers,
-    driver as driver_helpers)
+    driver as driver_helpers,
+)
 
 
 class CustomerRegistrationView(CreateAPIView):
@@ -37,12 +49,15 @@ class CustomerView(RetrieveUpdateDestroyAPIView):
 
     serializer_class = CustomerSerializer
     permission_classes = (
-        custom_permissions.IsOwner, permissions.IsAuthenticated,
+        custom_permissions.IsOwner,
+        permissions.IsAuthenticated,
     )
 
     def get_queryset(self):
         return User.objects.filter(
-            user_type=USER_TYPE_CUSTOMER, id=self.kwargs.get('pk'))
+            user_type=USER_TYPE_CUSTOMER,
+            id=self.kwargs.get('pk')
+        )
 
     def put(self, request, *args, **kwargs):
         email = request.data.get('email')
@@ -61,12 +76,15 @@ class DriverView(RetrieveUpdateDestroyAPIView):
 
     serializer_class = DriverSerializer
     permission_classes = (
-        custom_permissions.IsOwner, permissions.IsAuthenticated,
+        custom_permissions.IsOwner,
+        permissions.IsAuthenticated,
     )
 
     def get_queryset(self):
         return User.objects.filter(
-            user_type=USER_TYPE_DRIVER, id=self.kwargs.get('pk'))
+            user_type=USER_TYPE_DRIVER,
+            id=self.kwargs.get('pk')
+        )
 
     def patch(self, request, *args, **kwargs):
         email = request.data.get('email')
@@ -104,8 +122,8 @@ class AccountActivationView(APIView):
         except User.DoesNotExist:
             return Response(
                 data={'email': ['Not found.']},
-                status=status.HTTP_404_NOT_FOUND)
-
+                status=status.HTTP_404_NOT_FOUND
+            )
         if user_account.is_active():
             return Response(status=status.HTTP_304_NOT_MODIFIED)
         elif user_account.is_activation_key_valid(key=activation_key):
@@ -116,7 +134,8 @@ class AccountActivationView(APIView):
             return Response(data=temp_data, status=status.HTTP_200_OK)
         return Response(
             data={'activation_key': ['Invalid activation key.']},
-            status=status.HTTP_400_BAD_REQUEST)
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class RequestPasswordResetView(APIView):
@@ -125,27 +144,30 @@ class RequestPasswordResetView(APIView):
         if not email:
             return Response(
                 {'email': ['Field is mandatory.']},
-                status=status.HTTP_400_BAD_REQUEST)
-
+                status=status.HTTP_400_BAD_REQUEST
+            )
         try:
             validate_email(email)
         except ValidationError:
             return Response(
                 {'email': ['Invalid email address.']},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             user_account = UserHelpers(email=email)
         except User.DoesNotExist:
             return Response(
                 {'email': ['No account registered with that email.']},
-                status=status.HTTP_404_NOT_FOUND)
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         user = user_account.user
         if user.is_superuser or user.is_staff:
             return Response(
                 {'email': ['Cannot reset password for admin.']},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
         else:
             helpers.generate_password_reset_key_and_send_email(user=user)
             return Response(status=status.HTTP_200_OK)
@@ -177,20 +199,23 @@ class PasswordChangeView(APIView):
         except User.DoesNotExist:
             return Response(
                 {'email': ['No account registered with that email.']},
-                status=status.HTTP_404_NOT_FOUND)
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         user = user_account.user
         if user.is_superuser or user.is_staff:
             return Response(
                 {'email': ['Cannot changed password for admin.']},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if user_account.is_password_reset_valid(key=password_reset_key):
             user_account.change_password(new_password=new_password)
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(
                 {'password_reset_key': ['Invalid password reset key.']},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class UserStatusView(APIView):
@@ -200,14 +225,16 @@ class UserStatusView(APIView):
         if not email:
             return Response(
                 {'email': ['Field is mandatory.']},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             validate_email(email)
         except ValidationError:
             return Response(
                 {'email': ['Invalid email address.']},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             user_account = UserHelpers(email=email)
@@ -230,7 +257,8 @@ class FilterDriversView(ListAPIView):
             base_location=self.request.query_params.get('base_location', None),
             radius=self.request.query_params.get('radius', None),
             start_time=self.request.query_params.get('start_time', None),
-            time_span=self.request.query_params.get('time_span', None))
+            time_span=self.request.query_params.get('time_span', None)
+        )
 
     def _validate_data(self, radius, base_location, start_time, time_span):
         message = {}
@@ -262,7 +290,8 @@ class FilterDriversView(ListAPIView):
 
 class UserDetailsView(APIView):
     permission_classes = (
-        custom_permissions.IsOwner, permissions.IsAuthenticated,
+        custom_permissions.IsOwner,
+        permissions.IsAuthenticated,
     )
 
     def get(self, request, **kwargs):
@@ -301,7 +330,9 @@ class ActivationKeyView(APIView):
 
 class HireRequestView(APIView):
     permission_classes = (
-        permissions.IsAuthenticated, custom_permissions.IsCustomer, )
+        permissions.IsAuthenticated,
+        custom_permissions.IsCustomer,
+    )
 
     def _get_driver(self, id):
         try:
@@ -339,8 +370,11 @@ class HireRequestView(APIView):
         if start_time < timezone.now():
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        if driver_helpers.is_driver_available_for_hire(driver, start_time,
-                                                       start_time + time_span):
+        if driver_helpers.is_driver_available_for_hire(
+                driver,
+                start_time,
+                start_time + time_span
+        ):
             serializer = HireRequestSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -357,7 +391,9 @@ class HireRequestView(APIView):
 
 class HireResponseView(APIView):
     permission_classes = (
-        permissions.IsAuthenticated, custom_permissions.IsDriver, )
+        permissions.IsAuthenticated,
+        custom_permissions.IsDriver,
+    )
 
     def _validate_data(self, request_id, status):
         message = {}
@@ -382,8 +418,10 @@ class HireResponseView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         serializer = HireRequestSerializer(
-            hire_request, data=request.data, partial=True)
-
+            hire_request,
+            data=request.data,
+            partial=True
+        )
         if serializer.is_valid():
             customer = UserHelpers(id=hire_request.customer_id)
             if new_status == HIRE_REQUEST_ACCEPTED:
@@ -393,7 +431,9 @@ class HireResponseView(APIView):
 
             serializer.save()
             helpers.send_hire_response_push_notification(
-                customer.get_push_key(), serializer.data)
+                customer.get_push_key(),
+                serializer.data
+            )
 
             superseded_data = serializer.data
             superseded_data.update({'status': HIRE_REQUEST_CONFLICT})

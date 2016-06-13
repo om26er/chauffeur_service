@@ -46,10 +46,16 @@ def filter_available_drivers(base_location, radius, start_time, time_span):
 
     for driver in drivers:
         if driver_helpers.is_driver_available_for_hire(
-                driver, start_time, start_time+time_span):
+                driver,
+                start_time,
+                start_time+time_span
+        ):
             driver_location = get_user_location(driver)
-            if are_locations_within_radius(base_location, driver_location,
-                                           radius):
+            if are_locations_within_radius(
+                    base_location,
+                    driver_location,
+                    radius
+            ):
                 result.append(driver)
 
     return result
