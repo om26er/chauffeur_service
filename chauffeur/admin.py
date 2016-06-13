@@ -50,6 +50,9 @@ class DriverAdmin(admin.ModelAdmin):
         'review_stars',
         'location_reporting_type',
         'location_reporting_interval',
+        'doc1',
+        'doc2',
+        'doc3',
     )
 
     class Meta:

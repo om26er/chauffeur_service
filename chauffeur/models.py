@@ -1,4 +1,6 @@
 from datetime import timedelta
+import os
+import uuid
 
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
@@ -43,6 +45,13 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
+def get_image_file_path(instance, filename):
+    ext = filename.split('.')[-1]
+    name = str(uuid.uuid4()).replace('-', '_')
+    filename = '{}.{}'.format(name, ext)
+    return os.path.join('images', filename)
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, blank=False, unique=True)
     full_name = models.CharField(max_length=255, blank=True)
@@ -73,6 +82,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     bio = models.CharField(max_length=2000, blank=True)
     location_reporting_type = models.IntegerField(default=1)
     location_reporting_interval = models.IntegerField(default=2)
+    doc1 = models.ImageField(upload_to=get_image_file_path)
+    doc2 = models.ImageField(upload_to=get_image_file_path)
+    doc3 = models.ImageField(upload_to=get_image_file_path)
 
     # Customer specific fields
     vehicle_type = models.IntegerField(default=-1)

@@ -89,6 +89,9 @@ class DriverSerializer(serializers.ModelSerializer):
     driving_experience = serializers.CharField(required=True)
     review_count = serializers.IntegerField(read_only=True)
     transmission_type = serializers.IntegerField(required=True)
+    doc1 = serializers.ImageField(required=True)
+    doc2 = serializers.ImageField(required=True)
+    doc3 = serializers.ImageField(required=True)
 
     class Meta:
         model = User
@@ -111,6 +114,9 @@ class DriverSerializer(serializers.ModelSerializer):
             'location_reporting_type',
             'location_reporting_interval',
             'transmission_type',
+            'doc1',
+            'doc2',
+            'doc3',
         )
 
     def _append_location_time_if_location_request(self, validated_data):
