@@ -16,7 +16,7 @@ config_helpers = SettingHelpers(CONFIG_FILE)
 SECRET_KEY = 'jz_a(tc7ll#(q#j)eqt@5wrlf$j=(tnp-!2(u9m*@aa19fiy7w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config_helpers.get_debug_setting()
 
 ALLOWED_HOSTS = []
 
