@@ -323,6 +323,7 @@ class ActivationKeyView(APIView):
         if user_account.is_active():
             return Response(status=status.HTTP_400_BAD_REQUEST)
         else:
+            user_account.set_activation_key(helpers.generate_random_key())
             helpers.send_account_activation_email(
                 user_account.user.email, user_account.user.activation_key)
             return Response(status=status.HTTP_200_OK)

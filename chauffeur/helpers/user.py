@@ -26,6 +26,13 @@ class UserHelpers:
         self.user.activation_key = ACTIVATION_KEY_DEFAULT
         self._set_is_active(active=True)
 
+    def set_activation_key(self, key):
+        self.user.activation_key = int(key)
+        self.user.save()
+
+    def get_activation_key(self):
+        return int(self.user.activation_key)
+
     def is_activation_key_valid(self, key):
         if key == ACTIVATION_KEY_DEFAULT:
             return False
