@@ -2,20 +2,10 @@ from datetime import timedelta
 import os
 import uuid
 
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-from rest_framework.authtoken.models import Token
+from simple_login.models import BaseUser
 
 from chauffeur_service.settings import AUTH_USER_MODEL
-from chauffeur.managers import CustomUserManager
-from chauffeur.helpers import (
-    send_account_activation_email,
-    generate_random_key,
-)
-
 
 ACTIVATION_KEY_DEFAULT = -1
 PASSWORD_RESET_KEY_DEFAULT = -1
@@ -32,17 +22,10 @@ HIRE_REQUEST_CONFLICT = 6
 
 SERVICE_GRACE_PERIOD = timedelta(minutes=60)
 
-
 USER_TYPE_CHOICES = (
     (USER_TYPE_CUSTOMER, 'Customer'),
     (USER_TYPE_DRIVER, 'Driver'),
 )
-
-
-@receiver(post_save, sender=AUTH_USER_MODEL)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
-    if created:
-        Token.objects.create(user=instance)
 
 
 def get_image_file_path(instance, filename):
@@ -52,20 +35,15 @@ def get_image_file_path(instance, filename):
     return os.path.join('images', filename)
 
 
-class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(max_length=255, blank=False, unique=True)
+class User(BaseUser):
     full_name = models.CharField(max_length=255, blank=True)
-    is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
-    is_new = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(auto_now_add=True, blank=False)
 
     user_type = models.IntegerField(
-        blank=False, default=-1, choices=USER_TYPE_CHOICES)
+        blank=False,
+        default=-1,
+        choices=USER_TYPE_CHOICES
+    )
     transmission_type = models.IntegerField(blank=False, default=-1)
-    activation_key = models.IntegerField(default=ACTIVATION_KEY_DEFAULT)
-    password_reset_key = models.IntegerField(
-        default=PASSWORD_RESET_KEY_DEFAULT)
     push_notification_key = models.CharField(max_length=255, blank=True)
 
     phone_number = models.CharField(max_length=255, blank=False)
@@ -93,39 +71,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     initial_app_payment = models.FloatField(blank=True, default=0.0)
     driver_filter_radius = models.IntegerField(default=15)
 
-    objects = CustomUserManager()
-
-    USERNAME_FIELD = 'email'
-
-    def save(self, *args, **kwargs):
-        if not self.is_admin and self.is_new:
-            # Hash the password.
-            self.set_password(self.password)
-            self.is_active = False
-            self.is_new = False
-            self.activation_key = generate_random_key()
-            send_account_activation_email(self.email, self.activation_key)
-        super().save(*args, **kwargs)
-
-    def get_full_name(self):
-        return self.email
-
-    def get_short_name(self):
-        return self.email
-
-    def __str__(self):
-        return self.email
-
-    def has_perm(self, perm, obj=None):
-        return True
-
-    def has_module_perms(self, app_label):
-        return True
-
-    @property
-    def is_staff(self):
-        return self.is_admin
-
 
 class HireRequest(models.Model):
     customer = models.ForeignKey(
@@ -140,7 +85,7 @@ class HireRequest(models.Model):
 
     @property
     def end_time(self):
-        return self.start_time + timedelta(minutes=self.time_span)
+        return (self.start_time + timedelta(minutes=self.time_span)).__str__()
 
     @property
     def grace_pre(self):
@@ -160,4 +105,6 @@ class HireRequest(models.Model):
 
     def __str__(self):
         return 'Hire Request by {} at {}'.format(
-            self.driver.email, self.start_time.__str__())
+            self.driver.email,
+            self.start_time.__str__()
+        )

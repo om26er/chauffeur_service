@@ -6,7 +6,7 @@ CONFIG_SECTION_EMAIL_CREDENTIALS = 'email_credentials'
 CONFIG_SECTION_DATABASE_CREDENTIALS = 'database_credentials'
 
 
-class SettingHelpers:
+class ConfigHelpers:
 
     def __init__(self, config_file):
         self.config_file = config_file

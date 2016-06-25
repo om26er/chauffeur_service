@@ -1,7 +1,6 @@
 import datetime
 
 from geopy.distance import vincenty
-
 from django.utils import timezone
 
 from chauffeur.models import User, USER_TYPE_DRIVER
@@ -48,7 +47,7 @@ def filter_available_drivers(base_location, radius, start_time, time_span):
         if driver_helpers.is_driver_available_for_hire(
                 driver,
                 start_time,
-                start_time+time_span
+                start_time + time_span
         ):
             driver_location = get_user_location(driver)
             if are_locations_within_radius(
