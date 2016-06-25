@@ -1,5 +1,4 @@
 from django.utils import timezone
-
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -24,13 +23,6 @@ def _calculate_new_review_average_if_review_request(
         instance.review_stars = new_total / instance.review_count
 
 
-def _hash_password_if_password_request(instance, validated_data):
-    password = validated_data.get('password')
-    if password:
-        del validated_data['password']
-        instance.set_password(password)
-
-
 class CustomerSerializer(serializers.ModelSerializer):
     user_type = serializers.IntegerField(read_only=True)
     email = serializers.EmailField(
@@ -44,6 +36,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     vehicle_make = serializers.CharField(required=True)
     vehicle_model = serializers.CharField(required=True)
     review_count = serializers.IntegerField(read_only=True)
+    transmission_type = serializers.IntegerField(required=True)
 
     class Meta:
         model = User
@@ -63,6 +56,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             'review_count',
             'review_stars',
             'driver_filter_radius',
+            'transmission_type',
         )
 
     def create(self, validated_data):
@@ -70,7 +64,6 @@ class CustomerSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        _hash_password_if_password_request(instance, validated_data)
         _calculate_new_review_average_if_review_request(
             instance, validated_data)
         return super().update(instance, validated_data)
@@ -80,13 +73,17 @@ class DriverSerializer(serializers.ModelSerializer):
     user_type = serializers.IntegerField(read_only=True)
     email = serializers.EmailField(
         required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())])
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
     password = serializers.CharField(write_only=True)
     full_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
     driving_experience = serializers.CharField(required=True)
     review_count = serializers.IntegerField(read_only=True)
     transmission_type = serializers.IntegerField(required=True)
+    doc1 = serializers.ImageField(required=True)
+    doc2 = serializers.ImageField(required=True)
+    doc3 = serializers.ImageField(required=True)
 
     class Meta:
         model = User
@@ -109,6 +106,9 @@ class DriverSerializer(serializers.ModelSerializer):
             'location_reporting_type',
             'location_reporting_interval',
             'transmission_type',
+            'doc1',
+            'doc2',
+            'doc3',
         )
 
     def _append_location_time_if_location_request(self, validated_data):
@@ -123,7 +123,6 @@ class DriverSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         self._append_location_time_if_location_request(validated_data)
-        _hash_password_if_password_request(instance, validated_data)
         _calculate_new_review_average_if_review_request(
             instance, validated_data)
         return super().update(instance, validated_data)
@@ -149,5 +148,14 @@ class HireRequestSerializer(serializers.ModelSerializer):
             'id',
         )
 
-    def create(self, validated_data):
-        return super().create(validated_data)
+
+class DriverFilterSerializer(serializers.Serializer):
+    radius = serializers.FloatField(label='Search radius')
+    base_location = serializers.CharField(label='Search base reference')
+    start_time = serializers.DateTimeField(label='Job start time')
+    time_span = serializers.IntegerField(label='Job duration')
+
+
+class HireResponseSerializer(serializers.Serializer):
+    request_id = serializers.IntegerField(label='Request')
+    status = serializers.IntegerField(label='Response status code')

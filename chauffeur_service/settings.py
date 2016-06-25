@@ -1,12 +1,12 @@
 import os
 
-from chauffeur_service.setting_helpers import SettingHelpers
+from chauffeur_service.helpers import ConfigHelpers
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CONFIG_FILE = os.path.expanduser('~/chauffeur_config.ini')
-config_helpers = SettingHelpers(CONFIG_FILE)
+config_helpers = ConfigHelpers(CONFIG_FILE)
 
 
 # Quick-start development settings - unsuitable for production
@@ -16,7 +16,7 @@ config_helpers = SettingHelpers(CONFIG_FILE)
 SECRET_KEY = 'jz_a(tc7ll#(q#j)eqt@5wrlf$j=(tnp-!2(u9m*@aa19fiy7w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config_helpers.get_debug_setting()
 
 ALLOWED_HOSTS = []
 
@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'chauffeur',
     'rest_framework.authtoken',
     'rest_framework',
+    'simple_login',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -48,6 +49,7 @@ MIDDLEWARE_CLASSES = [
 
 ROOT_URLCONF = 'chauffeur_service.urls'
 AUTH_USER_MODEL = 'chauffeur.User'
+APP_NAME = 'Chauffeur Service'
 
 TEMPLATES = [
     {
@@ -128,7 +130,7 @@ USE_TZ = False
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = '/media/'
 
 EMAIL_USE_TLS = True

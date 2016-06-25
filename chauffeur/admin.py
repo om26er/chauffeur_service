@@ -39,6 +39,7 @@ class DriverAdmin(admin.ModelAdmin):
         'password',
         'full_name',
         'phone_number',
+        'transmission_type',
         'photo',
         'location',
         'location_last_updated',
@@ -49,6 +50,13 @@ class DriverAdmin(admin.ModelAdmin):
         'review_stars',
         'location_reporting_type',
         'location_reporting_interval',
+        'doc1',
+        'doc2',
+        'doc3',
+    )
+    readonly_fields = (
+        'email',
+        'password',
     )
 
     class Meta:
@@ -68,6 +76,7 @@ class CustomerAdmin(admin.ModelAdmin):
         'password',
         'full_name',
         'phone_number',
+        'transmission_type',
         'photo',
         'location',
         'number_of_hires',
@@ -78,6 +87,10 @@ class CustomerAdmin(admin.ModelAdmin):
         'review_count',
         'review_stars',
         'driver_filter_radius',
+    )
+    readonly_fields = (
+        'email',
+        'password',
     )
 
     class Meta:
@@ -92,14 +105,18 @@ class CustomerAdmin(admin.ModelAdmin):
 
 class PanelAdmin(admin.ModelAdmin):
     fields = (
+        'email',
         'password',
         'full_name',
-        'email',
         'is_active',
         'is_superuser',
         'last_login',
         'groups',
         'user_permissions',
+    )
+    readonly_fields = (
+        'email',
+        'password',
     )
 
     class Meta:
@@ -112,6 +129,9 @@ class PanelAdmin(admin.ModelAdmin):
 class HireRequestAdmin(admin.ModelAdmin):
     class Meta:
         model = HireRequest
+
+    def has_add_permission(self, request):
+        return False
 
 
 admin.site.register(CustomerProxy, CustomerAdmin)
