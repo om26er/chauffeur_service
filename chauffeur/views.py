@@ -5,7 +5,11 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from simple_login.views import RetrieveUpdateDestroyProfileView
+from simple_login.views import (
+    RetrieveUpdateDestroyProfileView,
+    AccountActivationAPIView,
+    LoginAPIView,
+)
 
 from chauffeur.models import (
     User,
@@ -38,6 +42,24 @@ class RegisterCustomer(CreateAPIView):
 
 class RegisterDriver(CreateAPIView):
     serializer_class = DriverSerializer
+
+
+class ActivateAccount(AccountActivationAPIView):
+    def get_serializer_class(self):
+        user = self.user_account.user
+        if user.user_type == USER_TYPE_CUSTOMER:
+            return CustomerSerializer
+        elif user.user_type == USER_TYPE_DRIVER:
+            return DriverSerializer
+
+
+class Login(LoginAPIView):
+    def get_serializer_class(self):
+        user = self.user_account.user
+        if user.user_type == USER_TYPE_CUSTOMER:
+            return CustomerSerializer
+        elif user.user_type == USER_TYPE_DRIVER:
+            return DriverSerializer
 
 
 class FilterDrivers(APIView):

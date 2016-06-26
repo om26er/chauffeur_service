@@ -9,11 +9,11 @@ from chauffeur.models import User
 urlpatterns = [
     url(
         r'^api/accounts/login$',
-        simple_login_views.Login.as_view(user_model=User)
+        chauffeur_views.Login.as_view(user_model=User)
     ),
     url(
         r'^api/accounts/activate$',
-        simple_login_views.ActivateAccount.as_view(user_model=User)
+        chauffeur_views.ActivateAccount.as_view(user_model=User)
     ),
     url(
         r'^api/accounts/reset_password$',
