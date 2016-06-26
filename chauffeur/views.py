@@ -8,6 +8,7 @@ from rest_framework import status, permissions
 from simple_login.views import (
     RetrieveUpdateDestroyProfileView,
     AccountActivationAPIView,
+    LoginAPIView,
 )
 
 from chauffeur.models import (
@@ -44,6 +45,15 @@ class RegisterDriver(CreateAPIView):
 
 
 class ActivateAccount(AccountActivationAPIView):
+    def get_serializer_class(self):
+        user = self.user_account.user
+        if user.user_type == USER_TYPE_CUSTOMER:
+            return CustomerSerializer
+        elif user.user_type == USER_TYPE_DRIVER:
+            return DriverSerializer
+
+
+class Login(LoginAPIView):
     def get_serializer_class(self):
         user = self.user_account.user
         if user.user_type == USER_TYPE_CUSTOMER:
