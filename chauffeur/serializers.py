@@ -129,7 +129,7 @@ class DriverSerializer(serializers.ModelSerializer):
 
 
 class HireRequestSerializer(serializers.ModelSerializer):
-    start_time = serializers.DateTimeField(required=True)
+    start_time = serializers.DateTimeField(required=False)
     time_span = serializers.IntegerField(required=True)
     driver_name = serializers.CharField(read_only=True)
     driver_email = serializers.EmailField(read_only=True)
@@ -152,7 +152,10 @@ class HireRequestSerializer(serializers.ModelSerializer):
 class DriverFilterSerializer(serializers.Serializer):
     radius = serializers.FloatField(label='Search radius')
     base_location = serializers.CharField(label='Search base reference')
-    start_time = serializers.DateTimeField(label='Job start time')
+    start_time = serializers.DateTimeField(
+        label='Job start time',
+        required=False
+    )
     time_span = serializers.IntegerField(label='Job duration')
 
 

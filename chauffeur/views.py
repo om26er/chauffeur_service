@@ -74,7 +74,7 @@ class FilterDrivers(APIView):
             time_span=self.request.query_params.get('time_span', None)
         )
 
-    def get(self, request, *args, **kwargs):
+    def get(self, *args, **kwargs):
         serializer = self.serializer_class(data=self.request.query_params)
         serializer.is_valid(raise_exception=True)
         driver_serializer = DriverSerializer(self.get_queryset(), many=True)
@@ -102,7 +102,7 @@ class RequestHire(APIView):
         except User.DoesNotExist:
             return None
 
-    def post(self, request, *args, **kwargs):
+    def post(self, *args, **kwargs):
         self.request.data.update({'customer': self.request.user.id})
         driver_id = self.request.data.get('driver')
         start_time = self.request.data.get('start_time')
@@ -110,14 +110,22 @@ class RequestHire(APIView):
         serializer = HireRequestSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
 
+        if start_time:
+            # There could be some time lost between the user sends the
+            # request to the service, due to network connectivity
+            # or other factors.
+            request_grace_period = datetime.timedelta(seconds=60)
+            start_time = helpers.get_formatted_time_from_string(start_time)
+            if start_time < timezone.now() - request_grace_period:
+                return Response(
+                    data={'start_time': 'Must not be behind current time.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            start_time = timezone.now()
+
         time_span = datetime.timedelta(minutes=int(time_span))
         driver = self._get_driver(id=int(driver_id))
-        start_time = helpers.get_formatted_time_from_string(start_time)
-        if start_time < timezone.now():
-            return Response(
-                data={'start_time': 'Must not be behind current time.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         if driver_helpers.is_driver_available_for_hire(
                 driver,
@@ -143,7 +151,7 @@ class RespondHire(APIView):
         custom_permissions.IsDriver,
     )
 
-    def put(self, request, *args, **kwargs):
+    def put(self, *args, **kwargs):
         data = self.request.data
         parameter_checker = HireResponseSerializer(data=data)
         parameter_checker.is_valid(raise_exception=True)
