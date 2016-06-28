@@ -52,6 +52,10 @@ urlpatterns = [
         chauffeur_views.RespondHire.as_view()
     ),
     url(
+        r'^api/requests$',
+        chauffeur_views.ListRequests.as_view()
+    ),
+    url(
         r'^api/filter_drivers$',
         chauffeur_views.FilterDrivers.as_view()
     ),

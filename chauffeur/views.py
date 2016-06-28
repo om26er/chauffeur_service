@@ -1,7 +1,7 @@
 import datetime
 
 from django.utils import timezone
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -88,6 +88,18 @@ class UserProfile(RetrieveUpdateDestroyProfileView):
             return CustomerSerializer
         elif user.user_type == USER_TYPE_DRIVER:
             return DriverSerializer
+
+
+class ListRequests(ListAPIView):
+    serializer_class = HireRequestSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get_queryset(self):
+        if self.request.user.user_type == USER_TYPE_CUSTOMER:
+            return HireRequest.objects.filter(customer_id=self.request.user.id)
+        elif self.request.user.user_type == USER_TYPE_CUSTOMER:
+            return HireRequest.objects.filter(driver=self.request.user.id)
+        return None
 
 
 class RequestHire(APIView):
