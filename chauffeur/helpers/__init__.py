@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import threading
 
+from django.utils import timezone
 from gcm import GCM
 
 from chauffeur.helpers import driver as driver_helpers
@@ -51,3 +52,11 @@ def _send_push_notification(push_key, data):
 
 def _send_push_notifications(push_keys, data):
     gcm.json_request(registration_ids=push_keys, data=data)
+
+
+def resolve_time(time):
+    if not time:
+        return timezone.now()
+    if not isinstance(time, datetime):
+        return get_formatted_time_from_string(time)
+    return time
