@@ -97,7 +97,7 @@ class ListRequests(ListAPIView):
     def get_queryset(self):
         if self.request.user.user_type == USER_TYPE_CUSTOMER:
             return HireRequest.objects.filter(customer_id=self.request.user.id)
-        elif self.request.user.user_type == USER_TYPE_CUSTOMER:
+        elif self.request.user.user_type == USER_TYPE_DRIVER:
             return HireRequest.objects.filter(driver=self.request.user.id)
         return None
 
