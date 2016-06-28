@@ -104,13 +104,17 @@ class RequestHire(APIView):
 
     def post(self, *args, **kwargs):
         self.request.data.update({'customer': self.request.user.id})
-        driver_id = self.request.data.get('driver')
         start_time = self.request.data.get('start_time')
+        if not start_time:
+            now = timezone.now()
+            self.request.data.update({'start_time': now})
+            start_time = now
+        driver_id = self.request.data.get('driver')
         time_span = self.request.data.get('time_span')
         serializer = HireRequestSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
 
-        if start_time:
+        if not isinstance(start_time, datetime.datetime):
             # There could be some time lost between the user sends the
             # request to the service, due to network connectivity
             # or other factors.
@@ -121,9 +125,6 @@ class RequestHire(APIView):
                     data={'start_time': 'Must not be behind current time.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-        else:
-            start_time = timezone.now()
-
         time_span = datetime.timedelta(minutes=int(time_span))
         driver = self._get_driver(id=int(driver_id))
 
