@@ -1,7 +1,7 @@
 import datetime
 
 from django.utils import timezone
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -9,10 +9,13 @@ from simple_login.views import (
     RetrieveUpdateDestroyProfileView,
     AccountActivationAPIView,
     LoginAPIView,
+    AccountRegistrationAPIView,
 )
 
 from chauffeur.models import (
-    User,
+    Customer,
+    Driver,
+    ChauffeurBaseUser,
     HireRequest,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
@@ -21,11 +24,13 @@ from chauffeur.models import (
     HIRE_REQUEST_DECLINED,
 )
 from chauffeur.serializers import (
+    ChauffeurBaseUserSerializer,
     CustomerSerializer,
     DriverSerializer,
     HireRequestSerializer,
     DriverFilterSerializer,
     HireResponseSerializer,
+    ReviewSerializer,
 )
 from chauffeur import permissions as custom_permissions
 from chauffeur import helpers
@@ -36,34 +41,84 @@ from chauffeur.helpers import (
 )
 
 
-class RegisterCustomer(CreateAPIView):
-    serializer_class = CustomerSerializer
+class RegisterCustomer(AccountRegistrationAPIView):
+    serializer_class = ChauffeurBaseUserSerializer
+    child_serializer_class = CustomerSerializer
+
+    def get_child_parent_relation(self):
+        return 'user_id', 'id'
 
 
-class RegisterDriver(CreateAPIView):
-    serializer_class = DriverSerializer
+class RegisterDriver(AccountRegistrationAPIView):
+    serializer_class = ChauffeurBaseUserSerializer
+    child_serializer_class = DriverSerializer
+
+    def get_child_parent_relation(self):
+        return 'user_id', 'id'
 
 
 class ActivateAccount(AccountActivationAPIView):
-    def get_serializer_class(self):
-        user = self.user_account.user
+    user_model = ChauffeurBaseUser
+    serializer_class = ChauffeurBaseUserSerializer
+
+    def get_child_serializer_class(self):
+        user = self.get_user()
         if user.user_type == USER_TYPE_CUSTOMER:
             return CustomerSerializer
         elif user.user_type == USER_TYPE_DRIVER:
             return DriverSerializer
+
+    def get_child_model(self):
+        user = self.get_user()
+        if user.user_type == USER_TYPE_CUSTOMER:
+            return Customer
+        elif user.user_type == USER_TYPE_DRIVER:
+            return Driver
 
 
 class Login(LoginAPIView):
-    def get_serializer_class(self):
-        user = self.user_account.user
+    user_model = ChauffeurBaseUser
+    serializer_class = ChauffeurBaseUserSerializer
+
+    def get_child_serializer_class(self):
+        user = self.get_user()
         if user.user_type == USER_TYPE_CUSTOMER:
             return CustomerSerializer
         elif user.user_type == USER_TYPE_DRIVER:
             return DriverSerializer
 
+    def get_child_model(self):
+        user = self.get_user()
+        if user.user_type == USER_TYPE_CUSTOMER:
+            return Customer
+        elif user.user_type == USER_TYPE_DRIVER:
+            return Driver
+
+
+class UserProfile(RetrieveUpdateDestroyProfileView):
+    user_model = ChauffeurBaseUser
+    serializer_class = ChauffeurBaseUserSerializer
+
+    def get_child_serializer_class(self):
+        user = self.get_auth_user()
+        if user.user_type == USER_TYPE_CUSTOMER:
+            return CustomerSerializer
+        elif user.user_type == USER_TYPE_DRIVER:
+            return DriverSerializer
+
+    def get_child_model(self):
+        user = self.get_auth_user()
+        if user.user_type == USER_TYPE_CUSTOMER:
+            return Customer
+        elif user.user_type == USER_TYPE_DRIVER:
+            return Driver
+
 
 class FilterDrivers(APIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (
+        permissions.IsAuthenticated,
+        custom_permissions.IsCustomer,
+    )
     serializer_class = DriverFilterSerializer
 
     def get_queryset(self):
@@ -81,27 +136,6 @@ class FilterDrivers(APIView):
         return Response(data=driver_serializer.data, status=status.HTTP_200_OK)
 
 
-class UserProfile(RetrieveUpdateDestroyProfileView):
-    def get_serializer_class(self):
-        user = self.get_auth_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return CustomerSerializer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return DriverSerializer
-
-
-class ListRequests(ListAPIView):
-    serializer_class = HireRequestSerializer
-    permission_classes = (permissions.IsAuthenticated, )
-
-    def get_queryset(self):
-        if self.request.user.user_type == USER_TYPE_CUSTOMER:
-            return HireRequest.objects.filter(customer_id=self.request.user.id)
-        elif self.request.user.user_type == USER_TYPE_DRIVER:
-            return HireRequest.objects.filter(driver=self.request.user.id)
-        return None
-
-
 class RequestHire(APIView):
     permission_classes = (
         permissions.IsAuthenticated,
@@ -110,8 +144,8 @@ class RequestHire(APIView):
 
     def _get_driver(self, id):
         try:
-            return User.objects.get(id=id)
-        except User.DoesNotExist:
+            return Driver.objects.get(id=id)
+        except Driver.DoesNotExist:
             return None
 
     def post(self, *args, **kwargs):
@@ -207,3 +241,20 @@ class RespondHire(APIView):
             superseded_data
         )
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class ListRequests(ListAPIView):
+    serializer_class = HireRequestSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get_queryset(self):
+        if self.request.user.user_type == USER_TYPE_CUSTOMER:
+            return HireRequest.objects.filter(customer_id=self.request.user.id)
+        elif self.request.user.user_type == USER_TYPE_DRIVER:
+            return HireRequest.objects.filter(driver=self.request.user.id)
+        return None
+
+
+class Review(RetrieveUpdateAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = (permissions.IsAuthenticated, )

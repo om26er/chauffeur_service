@@ -48,7 +48,7 @@ MIDDLEWARE_CLASSES = [
 ]
 
 ROOT_URLCONF = 'chauffeur_service.urls'
-AUTH_USER_MODEL = 'chauffeur.User'
+AUTH_USER_MODEL = 'chauffeur.ChauffeurBaseUser'
 APP_NAME = 'Chauffeur Service'
 
 TEMPLATES = [

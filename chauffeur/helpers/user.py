@@ -1,9 +1,9 @@
-from chauffeur.models import User
+from chauffeur.models import ChauffeurBaseUser
 
 
 class UserHelpers:
     def __init__(self, **kwargs):
-        self.user = User.objects.get(**kwargs)
+        self.user = ChauffeurBaseUser.objects.get(**kwargs)
 
     def append_hire_count(self):
         self.user.number_of_hires += 1
