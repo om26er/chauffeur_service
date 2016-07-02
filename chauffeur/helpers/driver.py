@@ -2,13 +2,13 @@ from chauffeur.models import (
     HireRequest,
     HIRE_REQUEST_ACCEPTED,
     HIRE_REQUEST_DONE,
-    HIRE_REQUEST_INPROGRESS,
+    HIRE_REQUEST_IN_PROGRESS,
     SERVICE_GRACE_PERIOD,
 )
 
 JOB_ACTIVE_STATES = (
     HIRE_REQUEST_ACCEPTED,
-    HIRE_REQUEST_INPROGRESS,
+    HIRE_REQUEST_IN_PROGRESS,
     HIRE_REQUEST_DONE,
 )
 
@@ -45,7 +45,6 @@ def is_driver_available_for_hire(driver, start_time, end_time):
                 request.end_time
         ):
             return False
-
     return True
 
 
