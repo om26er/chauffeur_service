@@ -45,7 +45,6 @@ def is_driver_available_for_hire(driver, start_time, end_time):
                 request.end_time
         ):
             return False
-
     return True
 
 

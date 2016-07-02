@@ -20,12 +20,16 @@ def _call_in_thread(func, *args, **kwargs):
     thread.start()
 
 
-def send_hire_request_push_notification(push_key, data):
-    _call_in_thread(_send_push_notification, push_key=push_key, data=data)
+def send_hire_request_push_notification(push_keys, data):
+    _call_in_thread(
+        _send_push_notifications_in_thread,
+        push_keys=push_keys,
+        data=data
+    )
 
 
-def send_hire_response_push_notification(push_key, data):
-    _call_in_thread(_send_push_notification, push_key=push_key, data=data)
+def send_hire_response_push_notification(push_keys, data):
+    _call_in_thread(_send_push_notifications, push_keys=push_keys, data=data)
 
 
 def send_superseded_notification(driver, accepted_request, data):
@@ -39,10 +43,10 @@ def send_superseded_notification(driver, accepted_request, data):
     push_ids = [UserHelpers(id=conflict.customer_id).get_push_key()
                 for conflict in conflicts]
     if push_ids:
-        _send_superseded_notification(push_keys=push_ids, data=data)
+        _send_push_notifications_in_thread(push_keys=push_ids, data=data)
 
 
-def _send_superseded_notification(push_keys, data):
+def _send_push_notifications_in_thread(push_keys, data):
     _call_in_thread(_send_push_notifications, push_keys=push_keys, data=data)
 
 

@@ -27,7 +27,7 @@ def are_locations_within_radius(base_location, remote_location, radius):
 
 def filter_available_drivers(base_location, radius, start_time, time_span):
     result = []
-    drivers = Driver.objects.filter(is_active=True)
+    drivers = Driver.objects.filter(user__is_active=True)
     start_time = resolve_time(start_time)
     time_span = datetime.timedelta(minutes=int(time_span))
     base_location = get_location_from_string(base_location)

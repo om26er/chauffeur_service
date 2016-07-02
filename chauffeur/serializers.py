@@ -11,50 +11,29 @@ from chauffeur.models import (
 )
 
 
-def _calculate_new_review_average_if_review_request(
-        instance,
-        validated_data
-):
-    review_stars = validated_data.get('review_stars')
-    if review_stars:
-        del validated_data['review_stars']
-        current_review_count = instance.review_count
-        current_review_stars = instance.review_stars
-        current_total = current_review_count * current_review_stars
-        new_total = current_total + review_stars
-        instance.review_count += 1
-        instance.review_stars = new_total / instance.review_count
-
-
 class ChauffeurBaseUserSerializer(serializers.ModelSerializer):
+    user_type = serializers.IntegerField(read_only=True)
     email = serializers.EmailField(
         required=True,
         validators=[UniqueValidator(queryset=ChauffeurBaseUser.objects.all())]
     )
     password = serializers.CharField(write_only=True)
-    full_name = serializers.CharField(required=True)
-    phone_number = serializers.CharField(required=True)
-    review_count = serializers.IntegerField(read_only=True)
-    transmission_type = serializers.IntegerField(required=True)
 
     class Meta:
         model = ChauffeurBaseUser
         fields = (
             'id',
-            'full_name',
+            'user_type',
             'password',
             'email',
-            'phone_number',
-            'photo',
-            'number_of_hires',
-            'review_count',
-            'review_stars',
-            'transmission_type',
         )
 
 
 class CustomerSerializer(serializers.ModelSerializer):
-    user_type = serializers.IntegerField(read_only=True)
+    full_name = serializers.CharField(required=True)
+    phone_number = serializers.CharField(required=True)
+    review_count = serializers.IntegerField(read_only=True)
+    transmission_type = serializers.IntegerField(required=True)
     vehicle_type = serializers.IntegerField(required=True)
     vehicle_make = serializers.CharField(required=True)
     vehicle_model = serializers.CharField(required=True)
@@ -62,7 +41,15 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = (
-            'user_type',
+            'id',
+            'email',
+            'full_name',
+            'phone_number',
+            'photo',
+            'number_of_hires',
+            'review_count',
+            'review_stars',
+            'transmission_type',
             'vehicle_type',
             'vehicle_make',
             'vehicle_model',
@@ -71,8 +58,17 @@ class CustomerSerializer(serializers.ModelSerializer):
         )
 
 
+def update_location_time(validated_data):
+    location = validated_data.get('location')
+    if location:
+        validated_data.update({'location_last_updated': timezone.now()})
+
+
 class DriverSerializer(serializers.ModelSerializer):
-    user_type = serializers.IntegerField(read_only=True)
+    full_name = serializers.CharField(required=True)
+    phone_number = serializers.CharField(required=True)
+    review_count = serializers.IntegerField(read_only=True)
+    transmission_type = serializers.IntegerField(required=True)
     driving_experience = serializers.CharField(required=True)
     doc1 = serializers.ImageField(required=True)
     doc2 = serializers.ImageField(required=True)
@@ -81,7 +77,15 @@ class DriverSerializer(serializers.ModelSerializer):
     class Meta:
         model = Driver
         fields = (
-            'user_type',
+            'id',
+            'email',
+            'full_name',
+            'phone_number',
+            'photo',
+            'number_of_hires',
+            'review_count',
+            'review_stars',
+            'transmission_type',
             'location',
             'location_last_updated',
             'driving_experience',
@@ -94,16 +98,27 @@ class DriverSerializer(serializers.ModelSerializer):
             'doc3',
         )
 
+    def update(self, instance, validated_data):
+        update_location_time(validated_data)
+        return super().update(instance, validated_data)
+
+    def create(self, validated_data):
+        update_location_time(validated_data)
+        return super().create(validated_data)
+
 
 class HireRequestSerializer(serializers.ModelSerializer):
     start_time = serializers.DateTimeField(required=False)
     time_span = serializers.IntegerField(required=True)
     driver_name = serializers.CharField(read_only=True)
-    driver_email = serializers.EmailField(read_only=True)
+    driver_phone_number = serializers.EmailField(read_only=True)
+    customer_name = serializers.CharField(read_only=True)
+    customer_phone_number = serializers.EmailField(read_only=True)
 
     class Meta:
         model = HireRequest
         fields = (
+            'id',
             'customer',
             'driver',
             'start_time',
@@ -111,8 +126,9 @@ class HireRequestSerializer(serializers.ModelSerializer):
             'time_span',
             'status',
             'driver_name',
-            'driver_email',
-            'id',
+            'driver_phone_number',
+            'customer_name',
+            'customer_phone_number',
         )
 
 
@@ -127,7 +143,6 @@ class DriverFilterSerializer(serializers.Serializer):
 
 
 class HireResponseSerializer(serializers.Serializer):
-    request_id = serializers.IntegerField(label='Request')
     status = serializers.IntegerField(label='Response status code')
 
 

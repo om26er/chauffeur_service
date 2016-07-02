@@ -56,11 +56,15 @@ urlpatterns = [
         chauffeur_views.ListRequests.as_view()
     ),
     url(
+        r'^api/user/(?P<pk>\d+)/public-profile$',
+        chauffeur_views.ListRequests.as_view()
+    ),
+    url(
         r'^api/hire/create$',
         chauffeur_views.RequestHire.as_view()
     ),
     url(
-        r'^api/hire/update$',
+        r'^api/hire/(?P<pk>\d+)/update$',
         chauffeur_views.RespondHire.as_view()
     ),
     url(
@@ -68,8 +72,8 @@ urlpatterns = [
         chauffeur_views.ListRequests.as_view()
     ),
     url(
-        r'^api/hire/review$',
-        chauffeur_views.Review.as_view()
+        r'^api/hire/(?P<pk>\d+)/review$',
+        chauffeur_views.ReviewView.as_view()
     ),
     url(
         r'^api/hire/filter-drivers$',
