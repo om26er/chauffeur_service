@@ -57,7 +57,7 @@ urlpatterns = [
     ),
     url(
         r'^api/user/(?P<pk>\d+)/public-profile$',
-        chauffeur_views.ListRequests.as_view()
+        chauffeur_views.UserPublicProfile.as_view()
     ),
     url(
         r'^api/hire/create$',

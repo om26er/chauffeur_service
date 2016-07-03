@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework.generics import (
     ListAPIView,
     RetrieveUpdateAPIView,
-    UpdateAPIView,
+    RetrieveAPIView,
     GenericAPIView,
 )
 from rest_framework.views import APIView
@@ -126,6 +126,26 @@ class UserProfile(RetrieveUpdateDestroyProfileView):
             return Customer
         elif user.user_type == USER_TYPE_DRIVER:
             return Driver
+
+
+class UserPublicProfile(RetrieveAPIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get_queryset(self):
+        if self.request.user.user_type == USER_TYPE_DRIVER:
+            return Customer.objects.get(id=self.kwargs['pk'])
+        elif self.request.user.user_type == USER_TYPE_CUSTOMER:
+            return Driver.objects.get(user_id=self.kwargs['pk'])
+        else:
+            return ChauffeurBaseUser
+
+    def get_serializer_class(self):
+        if self.request.user.user_type == USER_TYPE_DRIVER:
+            return CustomerSerializer
+        elif self.request.user.user_type == USER_TYPE_CUSTOMER:
+            return DriverSerializer
+        else:
+            return ChauffeurBaseUserSerializer
 
 
 class FilterDrivers(APIView):
