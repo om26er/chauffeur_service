@@ -128,8 +128,9 @@ class UserProfile(RetrieveUpdateDestroyProfileView):
             return Driver
 
 
-class UserPublicProfile(RetrieveAPIView):
+class UserPublicProfile(APIView):
     permission_classes = (permissions.IsAuthenticated, )
+    http_method_names = ['get']
 
     def get_queryset(self):
         if self.request.user.user_type == USER_TYPE_DRIVER:
@@ -146,6 +147,11 @@ class UserPublicProfile(RetrieveAPIView):
             return DriverSerializer
         else:
             return ChauffeurBaseUserSerializer
+
+    def get(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(instance=self.get_queryset())
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class FilterDrivers(APIView):
