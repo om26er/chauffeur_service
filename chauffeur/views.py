@@ -134,9 +134,15 @@ class UserPublicProfile(APIView):
 
     def get_queryset(self):
         if self.request.user.user_type == USER_TYPE_DRIVER:
-            return Customer.objects.get(id=self.kwargs['pk'])
+            try:
+                return Customer.objects.get(id=self.kwargs['pk'])
+            except Customer.DoesNotExist:
+                return None
         elif self.request.user.user_type == USER_TYPE_CUSTOMER:
-            return Driver.objects.get(id=self.kwargs['pk'])
+            try:
+                return Driver.objects.get(id=self.kwargs['pk'])
+            except Driver.DoesNotExist:
+                return None
         else:
             return ChauffeurBaseUser
 
