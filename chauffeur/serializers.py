@@ -110,6 +110,7 @@ class DriverSerializer(serializers.ModelSerializer):
 class HireRequestSerializer(serializers.ModelSerializer):
     start_time = serializers.DateTimeField(required=False)
     time_span = serializers.IntegerField(required=True)
+    location = serializers.CharField(required=True)
     driver_name = serializers.CharField(read_only=True)
     driver_phone_number = serializers.EmailField(read_only=True)
     customer_name = serializers.CharField(read_only=True)
@@ -124,6 +125,7 @@ class HireRequestSerializer(serializers.ModelSerializer):
             'start_time',
             'end_time',
             'time_span',
+            'location',
             'status',
             'driver_name',
             'driver_phone_number',
