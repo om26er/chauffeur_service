@@ -3,33 +3,25 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from chauffeur.models import (
-    ChauffeurBaseUser,
-    Customer,
-    Driver,
+    ChauffeurUser,
     HireRequest,
     Review,
+    USER_TYPE_CUSTOMER,
+    USER_TYPE_DRIVER,
 )
 
 
-class ChauffeurBaseUserSerializer(serializers.ModelSerializer):
-    user_type = serializers.IntegerField(read_only=True)
-    email = serializers.EmailField(
-        required=True,
-        validators=[UniqueValidator(queryset=ChauffeurBaseUser.objects.all())]
-    )
-    password = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = ChauffeurBaseUser
-        fields = (
-            'id',
-            'user_type',
-            'password',
-            'email',
-        )
+def set_user_type(validated_data, user_type):
+    validated_data.update({'user_type': user_type})
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    user_type = serializers.IntegerField(read_only=True)
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=ChauffeurUser.objects.all())]
+    )
+    password = serializers.CharField(write_only=True)
     full_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
     review_count = serializers.IntegerField(read_only=True)
@@ -39,9 +31,11 @@ class CustomerSerializer(serializers.ModelSerializer):
     vehicle_model = serializers.CharField(required=True)
 
     class Meta:
-        model = Customer
+        model = ChauffeurUser
         fields = (
             'id',
+            'user_type',
+            'password',
             'email',
             'full_name',
             'phone_number',
@@ -57,6 +51,10 @@ class CustomerSerializer(serializers.ModelSerializer):
             'driver_filter_radius',
         )
 
+    def create(self, validated_data):
+        set_user_type(validated_data, USER_TYPE_CUSTOMER)
+        return super().create(validated_data)
+
 
 def update_location_time(validated_data):
     location = validated_data.get('location')
@@ -65,6 +63,12 @@ def update_location_time(validated_data):
 
 
 class DriverSerializer(serializers.ModelSerializer):
+    user_type = serializers.IntegerField(read_only=True)
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=ChauffeurUser.objects.all())]
+    )
+    password = serializers.CharField(write_only=True)
     full_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
     review_count = serializers.IntegerField(read_only=True)
@@ -75,9 +79,11 @@ class DriverSerializer(serializers.ModelSerializer):
     doc3 = serializers.ImageField(required=True)
 
     class Meta:
-        model = Driver
+        model = ChauffeurUser
         fields = (
             'id',
+            'user_type',
+            'password',
             'email',
             'full_name',
             'phone_number',
@@ -103,6 +109,7 @@ class DriverSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def create(self, validated_data):
+        set_user_type(validated_data, USER_TYPE_DRIVER)
         update_location_time(validated_data)
         return super().create(validated_data)
 
@@ -110,6 +117,7 @@ class DriverSerializer(serializers.ModelSerializer):
 class HireRequestSerializer(serializers.ModelSerializer):
     start_time = serializers.DateTimeField(required=False)
     time_span = serializers.IntegerField(required=True)
+    location = serializers.CharField(required=True)
     driver_name = serializers.CharField(read_only=True)
     driver_phone_number = serializers.EmailField(read_only=True)
     customer_name = serializers.CharField(read_only=True)
@@ -124,6 +132,7 @@ class HireRequestSerializer(serializers.ModelSerializer):
             'start_time',
             'end_time',
             'time_span',
+            'location',
             'status',
             'driver_name',
             'driver_phone_number',

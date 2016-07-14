@@ -2,28 +2,32 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 
 from chauffeur.models import (
-    ChauffeurBaseUser,
-    Customer,
-    Driver,
+    ChauffeurUser,
     HireRequest,
+    USER_TYPE_CUSTOMER,
+    USER_TYPE_DRIVER,
 )
 
 
-class PanelAdminProxy(ChauffeurBaseUser):
+class PanelAdminProxy(ChauffeurUser):
     class Meta:
         verbose_name = 'Admin'
         verbose_name_plural = 'Admins'
         proxy = True
 
 
-class DriverAdmin(admin.ModelAdmin):
+class CustomerAdminProxy(ChauffeurUser):
     class Meta:
-        model = Driver
+        verbose_name = 'Customer'
+        verbose_name_plural = 'Customers'
+        proxy = True
 
 
-class CustomerAdmin(admin.ModelAdmin):
+class DriverAdminProxy(ChauffeurUser):
     class Meta:
-        model = Customer
+        verbose_name = 'Driver'
+        verbose_name_plural = 'Drivers'
+        proxy = True
 
 
 class PanelAdmin(admin.ModelAdmin):
@@ -49,6 +53,22 @@ class PanelAdmin(admin.ModelAdmin):
         return self.model.objects.filter(is_admin=True)
 
 
+class CustomerAdmin(admin.ModelAdmin):
+    class Meta:
+        model = CustomerAdminProxy
+
+    def get_queryset(self, request):
+        return self.model.objects.filter(user_type=USER_TYPE_CUSTOMER)
+
+
+class DriverAdmin(admin.ModelAdmin):
+    class Meta:
+        model = DriverAdminProxy
+
+    def get_queryset(self, request):
+        return self.model.objects.filter(user_type=USER_TYPE_DRIVER)
+
+
 class HireRequestAdmin(admin.ModelAdmin):
     class Meta:
         model = HireRequest
@@ -57,8 +77,8 @@ class HireRequestAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(Customer, CustomerAdmin)
-admin.site.register(Driver, DriverAdmin)
+admin.site.register(CustomerAdminProxy, CustomerAdmin)
+admin.site.register(DriverAdminProxy, DriverAdmin)
 admin.site.register(PanelAdminProxy, PanelAdmin)
 admin.site.register(HireRequest, HireRequestAdmin)
 admin.site.unregister(Group)
