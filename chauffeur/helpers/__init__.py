@@ -40,8 +40,10 @@ def send_superseded_notification(driver, accepted_request, data):
         start_time,
         end_time
     )
-    push_ids = [UserHelpers(id=conflict.customer_id).get_push_key()
-                for conflict in conflicts]
+    push_ids = []
+    for conflict in conflicts:
+        user_push_ids = UserHelpers(id=conflict.customer_id).get_push_keys()
+        push_ids.extend(user_push_ids)
     if push_ids:
         _send_push_notifications_in_thread(push_keys=push_ids, data=data)
 

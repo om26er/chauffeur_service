@@ -5,6 +5,7 @@ import uuid
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import models
+from rest_framework.authtoken.models import Token
 from simple_login.models import BaseUser
 
 HIRE_REQUEST_PENDING = 1
@@ -40,90 +41,43 @@ def process_save(sender, instance=None, created=False, **kwargs):
             Review.objects.create(request=instance)
 
 
-class ChauffeurBaseUser(BaseUser):
+class ChauffeurUser(BaseUser):
     user_type = models.IntegerField(blank=False, default=USER_TYPE_ADMIN)
-
-
-class Customer(models.Model):
-    user = models.OneToOneField(
-        ChauffeurBaseUser,
-        on_delete=models.CASCADE,
-        related_name='customers'
-    )
-    # Profile fields.
+    # Common profile fields
     full_name = models.CharField(max_length=255, blank=True)
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True, upload_to=get_image_file_path)
-    # Preference fields.
-    vehicle_type = models.IntegerField(default=-1)
-    vehicle_make = models.CharField(max_length=255, blank=True)
-    vehicle_model = models.CharField(max_length=255, blank=True)
-    driver_filter_radius = models.IntegerField(default=15)
-    transmission_type = models.IntegerField(blank=False, default=-1)
-    # Record fields.
-    number_of_hires = models.IntegerField(blank=True, default=0)
-    review_count = models.IntegerField(default=0, blank=True)
-    review_stars = models.FloatField(default=-1.0, blank=True)
-    initial_app_payment = models.FloatField(blank=True, default=0.0)
-
-    def save(self, *args, **kwargs):
-        if self.user.user_type != USER_TYPE_CUSTOMER:
-            self.user.user_type = USER_TYPE_CUSTOMER
-            self.user.save()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.user.email
-
-    @property
-    def email(self):
-        return self.user.email
-
-
-class Driver(models.Model):
-    user = models.OneToOneField(
-        ChauffeurBaseUser,
-        on_delete=models.CASCADE,
-        related_name='drivers'
-    )
-    # Profile fields.
-    full_name = models.CharField(max_length=255, blank=True)
-    phone_number = models.CharField(max_length=255, blank=False)
-    photo = models.ImageField(blank=True, upload_to=get_image_file_path)
+    # Drive specific profile fields
     bio = models.CharField(max_length=2000, blank=True)
     driving_experience = models.CharField(max_length=255, blank=True)
     doc1 = models.ImageField(upload_to=get_image_file_path)
     doc2 = models.ImageField(upload_to=get_image_file_path)
     doc3 = models.ImageField(upload_to=get_image_file_path)
-    # Preference fields.
+    # Common preference fields
     transmission_type = models.IntegerField(blank=False, default=-1)
+    # Customer specific preference fields
+    vehicle_type = models.IntegerField(default=-1)
+    vehicle_make = models.CharField(max_length=255, blank=True)
+    vehicle_model = models.CharField(max_length=255, blank=True)
+    driver_filter_radius = models.IntegerField(default=15)
+    # Driver specific preference fields
     location_reporting_type = models.IntegerField(default=1)
     location_reporting_interval = models.IntegerField(default=2)
-    # Record fields.
+    # Common record fields
     number_of_hires = models.IntegerField(blank=True, default=0)
     review_count = models.IntegerField(default=0, blank=True)
     review_stars = models.FloatField(default=-1.0, blank=True)
+    # Customer specific record fields
+    initial_app_payment = models.FloatField(blank=True, default=0.0)
+    # Driver specific record fields
     location = models.CharField(max_length=255, blank=True)
     location_last_updated = models.DateTimeField(blank=True, null=True)
     status = models.IntegerField(default=1)
 
-    def save(self, *args, **kwargs):
-        if self.user.user_type != USER_TYPE_DRIVER:
-            self.user.user_type = USER_TYPE_DRIVER
-            self.user.save()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.user.email
-
-    @property
-    def email(self):
-        return self.user.email
-
 
 class PushIDs(models.Model):
     user = models.ForeignKey(
-        ChauffeurBaseUser,
+        ChauffeurUser,
         blank=False,
         on_delete=models.CASCADE,
         related_name='push_notifications_id'
@@ -134,11 +88,15 @@ class PushIDs(models.Model):
 
 class HireRequest(models.Model):
     customer = models.ForeignKey(
-        Customer,
+        ChauffeurUser,
         blank=False,
         related_name='customer'
     )
-    driver = models.ForeignKey(Driver, blank=False, related_name='driver')
+    driver = models.ForeignKey(
+        ChauffeurUser,
+        blank=False,
+        related_name='driver'
+    )
     location = models.CharField(max_length=255, blank=False)
     start_time = models.DateTimeField(blank=False)
     time_span = models.IntegerField(blank=False)

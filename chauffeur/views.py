@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework.generics import (
     ListAPIView,
     RetrieveUpdateAPIView,
-    RetrieveAPIView,
+    CreateAPIView,
     GenericAPIView,
 )
 from rest_framework.views import APIView
@@ -14,13 +14,10 @@ from simple_login.views import (
     RetrieveUpdateDestroyProfileView,
     AccountActivationAPIView,
     LoginAPIView,
-    AccountRegistrationAPIView,
 )
 
 from chauffeur.models import (
-    Customer,
-    Driver,
-    ChauffeurBaseUser,
+    ChauffeurUser,
     HireRequest,
     Review,
     PushIDs,
@@ -38,7 +35,6 @@ from chauffeur.models import (
     REVIEW_STATUS_CUSTOMER_DONE,
 )
 from chauffeur.serializers import (
-    ChauffeurBaseUserSerializer,
     CustomerSerializer,
     DriverSerializer,
     HireRequestSerializer,
@@ -55,77 +51,45 @@ from chauffeur.helpers import (
 )
 
 
-class RegisterCustomer(AccountRegistrationAPIView):
-    serializer_class = ChauffeurBaseUserSerializer
-    child_serializer_class = CustomerSerializer
-
-    def get_child_parent_relation(self):
-        return 'user_id', 'id'
+class RegisterCustomer(CreateAPIView):
+    serializer_class = CustomerSerializer
 
 
-class RegisterDriver(AccountRegistrationAPIView):
-    serializer_class = ChauffeurBaseUserSerializer
-    child_serializer_class = DriverSerializer
-
-    def get_child_parent_relation(self):
-        return 'user_id', 'id'
+class RegisterDriver(CreateAPIView):
+    serializer_class = DriverSerializer
 
 
 class ActivateAccount(AccountActivationAPIView):
-    user_model = ChauffeurBaseUser
-    serializer_class = ChauffeurBaseUserSerializer
+    user_model = ChauffeurUser
 
-    def get_child_serializer_class(self):
+    def get_serializer_class(self):
         user = self.get_user()
         if user.user_type == USER_TYPE_CUSTOMER:
             return CustomerSerializer
         elif user.user_type == USER_TYPE_DRIVER:
             return DriverSerializer
-
-    def get_child_model(self):
-        user = self.get_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return Customer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return Driver
 
 
 class Login(LoginAPIView):
-    user_model = ChauffeurBaseUser
-    serializer_class = ChauffeurBaseUserSerializer
+    user_model = ChauffeurUser
 
-    def get_child_serializer_class(self):
+    def get_serializer_class(self):
         user = self.get_user()
         if user.user_type == USER_TYPE_CUSTOMER:
             return CustomerSerializer
         elif user.user_type == USER_TYPE_DRIVER:
             return DriverSerializer
-
-    def get_child_model(self):
-        user = self.get_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return Customer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return Driver
 
 
 class UserProfile(RetrieveUpdateDestroyProfileView):
-    user_model = ChauffeurBaseUser
-    serializer_class = ChauffeurBaseUserSerializer
+    user_model = ChauffeurUser
 
-    def get_child_serializer_class(self):
-        user = self.get_auth_user()
+    def get_serializer_class(self):
+        user = self.get_user()
         if user.user_type == USER_TYPE_CUSTOMER:
             return CustomerSerializer
         elif user.user_type == USER_TYPE_DRIVER:
             return DriverSerializer
-
-    def get_child_model(self):
-        user = self.get_auth_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return Customer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return Driver
 
 
 class UserPublicProfile(APIView):
@@ -133,26 +97,16 @@ class UserPublicProfile(APIView):
     http_method_names = ['get']
 
     def get_queryset(self):
-        if self.request.user.user_type == USER_TYPE_DRIVER:
-            try:
-                return Customer.objects.get(id=self.kwargs['pk'])
-            except Customer.DoesNotExist:
-                return None
-        elif self.request.user.user_type == USER_TYPE_CUSTOMER:
-            try:
-                return Driver.objects.get(id=self.kwargs['pk'])
-            except Driver.DoesNotExist:
-                return None
-        else:
-            return ChauffeurBaseUser
+        try:
+            return ChauffeurUser.objects.get(id=self.kwargs['pk'])
+        except ChauffeurUser.DoesNotExist:
+            return None
 
     def get_serializer_class(self):
         if self.request.user.user_type == USER_TYPE_DRIVER:
             return CustomerSerializer
         elif self.request.user.user_type == USER_TYPE_CUSTOMER:
             return DriverSerializer
-        else:
-            return ChauffeurBaseUserSerializer
 
     def get(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
@@ -188,14 +142,14 @@ class RequestHire(APIView):
         custom_permissions.IsCustomer,
     )
 
-    def _get_driver(self, id):
+    def _get_driver(self, driver_id):
         try:
-            return Driver.objects.get(id=id)
-        except Driver.DoesNotExist:
+            return ChauffeurUser.objects.get(id=driver_id)
+        except ChauffeurUser.DoesNotExist:
             return None
 
     def post(self, *args, **kwargs):
-        customer = Customer.objects.get(user=self.request.user)
+        customer = self.request.user
         self.request.data.update({'customer': customer.id})
         start_time = self.request.data.get('start_time')
         if not start_time:
@@ -219,7 +173,7 @@ class RequestHire(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         time_span = datetime.timedelta(minutes=int(time_span))
-        driver = self._get_driver(id=int(driver_id))
+        driver = self._get_driver(int(driver_id))
 
         if driver_helpers.is_driver_available_for_hire(
                 driver,
@@ -227,7 +181,7 @@ class RequestHire(APIView):
                 start_time + time_span
         ):
             serializer.save()
-            push_instances = PushIDs.objects.filter(user=driver.user)
+            push_instances = PushIDs.objects.filter(user=driver)
             push_ids = [i.push_key for i in push_instances]
             h.send_hire_request_push_notification(push_ids, serializer.data)
             return Response(
@@ -245,24 +199,69 @@ class RespondHire(GenericAPIView):
     def get_queryset(self):
         return HireRequest.objects.get(id=self.kwargs['pk'])
 
+    def is_customer(self):
+        return self.request.user.user_type == USER_TYPE_CUSTOMER
+
+    def is_driver(self):
+        return self.request.user.user_type == USER_TYPE_DRIVER
+
+    @property
+    def user_id(self):
+        return self.request.user.id
+
     def put(self, *args, **kwargs):
         data = self.request.data
         parameter_checker = HireResponseSerializer(data=data)
         parameter_checker.is_valid(raise_exception=True)
+        hire_request = self.get_queryset()
+
+        if self.is_customer():
+            if hire_request.customer_id != self.user_id:
+                return Response(
+                    data={'message': 'You are not the requester.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        elif self.is_driver():
+            if hire_request.driver_id != self.user_id:
+                return Response(
+                    data={'message': 'You are not the requestee.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         new_status = int(data.get('status'))
+        if new_status < hire_request.status:
+            return Response(
+                data={'message': 'Cannot go back.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if new_status <= HIRE_REQUEST_PENDING or \
                 new_status > HIRE_REQUEST_DONE:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data={'message': 'Unsupported status.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        hire_request = self.get_queryset()
         if hire_request.status == HIRE_REQUEST_DECLINED:
             return Response(
-                data={'Not allowed to change an already declined request.'},
+                data={
+                    'message':
+                    'Not allowed to change an already declined request.'
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
         elif hire_request.status == new_status:
             return Response(status=status.HTTP_304_NOT_MODIFIED)
+
+        if self.is_customer():
+            if new_status == HIRE_REQUEST_ACCEPTED or \
+                    new_status == HIRE_REQUEST_DECLINED:
+                return Response(
+                    data={
+                        'message':
+                        'Only drivers can accept/decline.'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         serializer = HireRequestSerializer(
             hire_request,
@@ -304,11 +303,9 @@ class ListRequests(ListAPIView):
 
     def get_queryset(self):
         if self.request.user.user_type == USER_TYPE_CUSTOMER:
-            customer_id = Customer.objects.get(user=self.request.user).id
-            return HireRequest.objects.filter(customer_id=customer_id)
+            return HireRequest.objects.filter(customer_id=self.request.user.id)
         elif self.request.user.user_type == USER_TYPE_DRIVER:
-            driver_id = Driver.objects.get(user=self.request.user).id
-            return HireRequest.objects.filter(driver_id=driver_id)
+            return HireRequest.objects.filter(driver_id=self.request.user.id)
         return None
 
 
@@ -322,20 +319,10 @@ class ReviewView(RetrieveUpdateAPIView):
         return Review.objects.get(request_id=request_id)
 
     def is_customer(self):
-        try:
-            Customer.objects.get(user=self.request.user)
-        except Customer.DoesNotExist:
-            return False
-        else:
-            return True
+        return self.request.user.user_type == USER_TYPE_CUSTOMER
 
     def is_driver(self):
-        try:
-            Driver.objects.get(user=self.request.user)
-        except Driver.DoesNotExist:
-            return False
-        else:
-            return True
+        return self.request.user.user_type == USER_TYPE_DRIVER
 
     def update(self, request, *args, **kwargs):
         review_object = self.get_queryset()

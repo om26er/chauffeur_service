@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from simple_login import views as simple_login_views
 
 from chauffeur import views as chauffeur_views
-from chauffeur.models import ChauffeurBaseUser
+from chauffeur.models import ChauffeurUser
 
 urlpatterns = [
     url(
@@ -26,19 +26,19 @@ urlpatterns = [
     url(
         r'^api/user/forgotten-password$',
         simple_login_views.RequestPasswordReset.as_view(
-            user_model=ChauffeurBaseUser
+            user_model=ChauffeurUser
         )
     ),
     url(
         r'^api/user/change-password$',
         simple_login_views.ChangePassword.as_view(
-            user_model=ChauffeurBaseUser
+            user_model=ChauffeurUser
         )
     ),
     url(
         r'^api/user/status$',
         simple_login_views.AccountStatus.as_view(
-            user_model=ChauffeurBaseUser
+            user_model=ChauffeurUser
         )
     ),
     url(
@@ -48,7 +48,7 @@ urlpatterns = [
     url(
         r'^api/user/request-activation-key$',
         simple_login_views.RequestActivationKey.as_view(
-            user_model=ChauffeurBaseUser
+            user_model=ChauffeurUser
         )
     ),
     url(
