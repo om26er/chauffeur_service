@@ -39,6 +39,7 @@ from chauffeur.serializers import (
     DriverFilterSerializer,
     HireResponseSerializer,
     ReviewSerializer,
+    PushIdSerializer,
 )
 from chauffeur.responses import (
     BadRequest,
@@ -117,6 +118,19 @@ class UserPublicProfile(APIView):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=self.get_queryset())
         return Ok(serializer.data)
+
+
+class ActiveRequests(ListAPIView):
+    serializer_class = HireRequestSerializer
+
+    def get_queryset(self):
+        return HireRequest.objects.filter(
+            status__in=[
+                HIRE_REQUEST_PENDING,
+                HIRE_REQUEST_ACCEPTED,
+                HIRE_REQUEST_IN_PROGRESS
+            ]
+        )
 
 
 class FilterDrivers(APIView):
@@ -289,6 +303,31 @@ class ListRequests(ListAPIView):
         elif self.request.user.user_type == USER_TYPE_DRIVER:
             return HireRequest.objects.filter(driver_id=self.request.user.id)
         return None
+
+
+class PushId(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+    serializer_class = PushIdSerializer
+
+    def post(self, *args, **kwargs):
+        data = self.request.data
+        data.update({'user_id': self.request.user.id})
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            push_id = PushIDs.objects.get(
+                device_id=self.request.data.get('device_id')
+            )
+            serializer = self.serializer_class(
+                instance=push_id,
+                data=self.request.data,
+                partial=True
+            )
+            serializer.save()
+        except PushIDs.DoesNotExist:
+            serializer.save()
+        return Ok(serializer.data)
 
 
 class ReviewView(RetrieveUpdateAPIView):
