@@ -119,6 +119,19 @@ class UserPublicProfile(APIView):
         return Ok(serializer.data)
 
 
+class ActiveRequests(ListAPIView):
+    serializer_class = HireRequestSerializer
+
+    def get_queryset(self):
+        return HireRequest.objects.filter(
+            status__in=[
+                HIRE_REQUEST_PENDING,
+                HIRE_REQUEST_ACCEPTED,
+                HIRE_REQUEST_IN_PROGRESS
+            ]
+        )
+
+
 class FilterDrivers(APIView):
     permission_classes = (
         permissions.IsAuthenticated,

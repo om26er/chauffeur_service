@@ -60,6 +60,10 @@ urlpatterns = [
         chauffeur_views.UserPublicProfile.as_view()
     ),
     url(
+        r'^api/user/(?P<pk>\d+)/active-requests',
+        chauffeur_views.ActiveRequests.as_view()
+    ),
+    url(
         r'^api/hire/create$',
         chauffeur_views.RequestHire.as_view()
     ),
