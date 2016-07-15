@@ -324,6 +324,7 @@ class PushId(APIView):
                 data=self.request.data,
                 partial=True
             )
+            serializer.is_valid(raise_exception=True)
             serializer.save()
         except PushIDs.DoesNotExist:
             serializer.save()
