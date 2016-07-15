@@ -6,6 +6,7 @@ from chauffeur.models import (
     ChauffeurUser,
     HireRequest,
     Review,
+    PushIDs,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
 )
@@ -171,4 +172,17 @@ class ReviewSerializer(serializers.ModelSerializer):
             'customer',
             'customer_name',
             'customer_email',
+        )
+
+
+class PushIdSerializer(serializers.ModelSerializer):
+    device_id = serializers.CharField(required=True)
+    push_key = serializers.CharField(required=True)
+
+    class Meta:
+        model = PushIDs
+        fields = (
+            'user',
+            'device_id',
+            'push_key',
         )

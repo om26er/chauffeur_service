@@ -53,7 +53,7 @@ urlpatterns = [
     ),
     url(
         r'^api/user/push-id/add$',
-        chauffeur_views.ListRequests.as_view()
+        chauffeur_views.PushId.as_view()
     ),
     url(
         r'^api/user/(?P<pk>\d+)/public-profile$',
