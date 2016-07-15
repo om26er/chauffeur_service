@@ -311,7 +311,7 @@ class PushId(APIView):
 
     def post(self, *args, **kwargs):
         data = self.request.data
-        data.update({'user_id': self.request.user.id})
+        data.update({'user': self.request.user.id})
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
 
