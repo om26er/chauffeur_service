@@ -183,3 +183,33 @@ class Review(models.Model):
 
         if self.driver_review and not self.customer_review:
             return REVIEW_STATUS_DRIVER_DONE
+
+
+class Segment(models.Model):
+    identifier = models.IntegerField(blank=False)
+    name = models.CharField(max_length=255, blank=False)
+
+    def __str__(self):
+        return self.name
+
+
+class Charge(models.Model):
+    segment = models.ForeignKey(Segment)
+    hours = models.IntegerField(blank=False)
+    briver_price = models.IntegerField(blank=False)
+    driver_hourly_rate = models.IntegerField(blank=False)
+
+    @property
+    def driver_price(self):
+        return self.hours * self.driver_hourly_rate
+
+    @property
+    def total_price(self):
+        return self.driver_price + self.briver_price
+
+    def __str__(self):
+        return 'Segment: {}, Hours: {}, Pricing: {}'.format(
+            self.segment.name,
+            self.hours,
+            self.total_price
+        )

@@ -7,6 +7,7 @@ from chauffeur.models import (
     HireRequest,
     Review,
     PushIDs,
+    Charge,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
 )
@@ -186,3 +187,23 @@ class PushIdSerializer(serializers.ModelSerializer):
             'device_id',
             'push_key',
         )
+
+
+class PricingSerializer(serializers.ModelSerializer):
+    hours = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Charge
+        fields = (
+            'segment',
+            'hours',
+            'briver_price',
+            'driver_price',
+            'driver_hourly_rate',
+            'total_price',
+        )
+
+
+class PriceValidator(serializers.Serializer):
+    hours = serializers.IntegerField(required=True)
+    segment = serializers.IntegerField(required=True)

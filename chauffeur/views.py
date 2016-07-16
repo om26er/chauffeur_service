@@ -3,6 +3,7 @@ import datetime
 from django.utils import timezone
 from rest_framework.generics import (
     ListAPIView,
+    RetrieveAPIView,
     RetrieveUpdateAPIView,
     CreateAPIView,
     GenericAPIView,
@@ -20,6 +21,7 @@ from chauffeur.models import (
     HireRequest,
     Review,
     PushIDs,
+    Charge,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
     HIRE_REQUEST_PENDING,
@@ -40,6 +42,8 @@ from chauffeur.serializers import (
     HireResponseSerializer,
     ReviewSerializer,
     PushIdSerializer,
+    PricingSerializer,
+    PriceValidator,
 )
 from chauffeur.responses import (
     BadRequest,
@@ -382,3 +386,16 @@ def calculate_and_set_review(instance, review_stars):
     instance.review_count += 1
     instance.review_stars = new_total / instance.review_count
     instance.save()
+
+
+class GetPrice(APIView):
+    def post(self, *args, **kwargs):
+        validator = PriceValidator(data=self.request.data)
+        validator.is_valid(raise_exception=True)
+        hours = int(self.request.data.get('hours'))
+        segment = int(self.request.data.get('segment'))
+        obj = Charge.objects.filter(segment_id=segment, hours=hours)
+        if not obj:
+            return BadRequest({'message': 'Non supported price filter.'})
+        serializer = PricingSerializer(instance=obj[0])
+        return Ok(serializer.data)
