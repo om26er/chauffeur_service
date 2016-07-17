@@ -7,7 +7,7 @@ from gcm import GCM
 from chauffeur.helpers import driver as driver_helpers
 from chauffeur.helpers.user import UserHelpers
 
-APP_PUSH_ID = 'AIzaSyDQQnF3t7ZtecQzlQhthWMsyIXnusS0sKY'
+APP_PUSH_ID = 'AIzaSyDwWa2P5dJe5TfaHKD9-kA6SLQHA9Sr2XU'
 gcm = GCM(APP_PUSH_ID)
 
 
