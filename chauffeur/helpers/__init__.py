@@ -57,6 +57,7 @@ def _send_push_notification(push_key, data):
 
 
 def _send_push_notifications(push_keys, data):
+    print(push_keys)
     out = gcm.json_request(registration_ids=push_keys, data=data)
     print(out)
 
