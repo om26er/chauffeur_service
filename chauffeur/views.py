@@ -202,10 +202,14 @@ class RequestHire(APIView):
                 start_time + time_span
         ):
             serializer.save()
+            data = serializer.data
+            request_end_time = data['end_time']
+            if isinstance(request_end_time, datetime.datetime):
+                data.update({'end_time': request_end_time.isoformat()})
             push_instances = PushIDs.objects.filter(user=driver)
             push_ids = [i.push_key for i in push_instances]
-            h.send_hire_request_push_notification(push_ids, serializer.data)
-            return Ok(serializer.data)
+            h.send_hire_request_push_notification(push_ids, data)
+            return Ok(data)
         else:
             return Conflict()
 
