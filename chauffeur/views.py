@@ -193,7 +193,7 @@ class RequestHire(APIView):
             if start_time < timezone.now() - request_grace_period:
                 data = {'start_time': 'Must not be behind current time.'}
                 return BadRequest(data)
-        time_span = datetime.timedelta(minutes=int(time_span))
+        time_span = datetime.timedelta(hours=int(time_span))
         driver = self._get_driver(int(driver_id))
 
         if driver_helpers.is_driver_available_for_hire(

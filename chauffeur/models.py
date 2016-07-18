@@ -106,7 +106,7 @@ class HireRequest(models.Model):
 
     @property
     def end_time(self):
-        return self.start_time + timedelta(minutes=self.time_span)
+        return self.start_time + timedelta(hours=self.time_span)
 
     @property
     def grace_pre(self):

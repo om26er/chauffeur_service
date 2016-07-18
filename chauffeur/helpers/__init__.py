@@ -34,7 +34,7 @@ def send_hire_response_push_notification(push_keys, data):
 
 def send_superseded_notification(driver, accepted_request, data):
     start_time = accepted_request.start_time
-    end_time = start_time + timedelta(minutes=accepted_request.time_span)
+    end_time = start_time + timedelta(hours=accepted_request.time_span)
     conflicts = driver_helpers.get_conflicting_hire_requests(
         driver,
         start_time,
