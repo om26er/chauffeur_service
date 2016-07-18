@@ -2,7 +2,7 @@ from datetime import timedelta
 import os
 import uuid
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.db import models
 from rest_framework.authtoken.models import Token
@@ -32,13 +32,6 @@ def get_image_file_path(instance, filename):
     name = str(uuid.uuid4()).replace('-', '_')
     filename = '{}.{}'.format(name, ext)
     return os.path.join('images', filename)
-
-
-@receiver(post_save)
-def process_save(sender, instance=None, created=False, **kwargs):
-    if created:
-        if isinstance(instance, HireRequest):
-            Review.objects.create(request=instance)
 
 
 class ChauffeurUser(BaseUser):
@@ -73,6 +66,15 @@ class ChauffeurUser(BaseUser):
     location = models.CharField(max_length=255, blank=True)
     location_last_updated = models.DateTimeField(blank=True, null=True)
     status = models.IntegerField(default=1)
+
+
+@receiver(pre_delete, sender=ChauffeurUser)
+def cascade_photos(*args, **kwargs):
+    instance = kwargs['instance']
+    instance.photo.delete()
+    instance.doc1.delete()
+    instance.doc2.delete()
+    instance.doc3.delete()
 
 
 class PushIDs(models.Model):
@@ -135,6 +137,12 @@ class HireRequest(models.Model):
             self.driver.email,
             self.start_time.__str__()
         )
+
+
+@receiver(post_save, sender=HireRequest)
+def process_save(sender, instance=None, created=False, **kwargs):
+    if created:
+        Review.objects.create(request=instance)
 
 
 class Review(models.Model):
