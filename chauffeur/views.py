@@ -137,10 +137,25 @@ class UserPublicProfile(APIView):
 
 
 class ActiveRequests(ListAPIView):
+    permission_classes = (permissions.IsAuthenticated, )
     serializer_class = HireRequestSerializer
 
+    def is_customer(self):
+        return self.request.user.user_type == USER_TYPE_CUSTOMER
+
+    def is_driver(self):
+        return self.request.user.user_type == USER_TYPE_DRIVER
+
     def get_queryset(self):
+        if self.is_customer():
+            id_parameter = 'customer_id'
+        elif self.is_driver():
+            id_parameter = 'driver_id'
+        else:
+            id_parameter = None
+
         return HireRequest.objects.filter(
+            **{id_parameter: self.request.user.id},
             status__in=[
                 HIRE_REQUEST_PENDING,
                 HIRE_REQUEST_ACCEPTED,
