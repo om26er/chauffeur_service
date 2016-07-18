@@ -3,7 +3,9 @@ from django.contrib.auth.models import Group
 
 from chauffeur.models import (
     ChauffeurUser,
+    Charge,
     HireRequest,
+    Segment,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
 )
@@ -77,8 +79,20 @@ class HireRequestAdmin(admin.ModelAdmin):
         return False
 
 
+class ChargeAdmin(admin.ModelAdmin):
+    class Meta:
+        model = Charge
+
+
+class SegmentAdmin(admin.ModelAdmin):
+    class Meta:
+        model = Segment
+
+
 admin.site.register(CustomerAdminProxy, CustomerAdmin)
 admin.site.register(DriverAdminProxy, DriverAdmin)
 admin.site.register(PanelAdminProxy, PanelAdmin)
 admin.site.register(HireRequest, HireRequestAdmin)
+admin.site.register(Charge, ChargeAdmin)
+admin.site.register(Segment, SegmentAdmin)
 admin.site.unregister(Group)

@@ -83,4 +83,8 @@ urlpatterns = [
         r'^api/hire/filter-drivers$',
         chauffeur_views.FilterDrivers.as_view()
     ),
+    url(
+        r'^api/hire/get-price$',
+        chauffeur_views.GetPrice.as_view()
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,322 @@
+[
+  {
+    "model": "chauffeur.charge",
+    "pk": 1,
+    "fields": {
+      "segment": 1,
+      "hours": 2,
+      "briver_price": 29,
+      "driver_hourly_rate": 100
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 2,
+    "fields": {
+      "segment": 1,
+      "hours": 4,
+      "briver_price": 49,
+      "driver_hourly_rate": 100
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 3,
+    "fields": {
+      "segment": 1,
+      "hours": 6,
+      "briver_price": 79,
+      "driver_hourly_rate": 89
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 4,
+    "fields": {
+      "segment": 1,
+      "hours": 8,
+      "briver_price": 99,
+      "driver_hourly_rate": 89
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 5,
+    "fields": {
+      "segment": 1,
+      "hours": 10,
+      "briver_price": 129,
+      "driver_hourly_rate": 89
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 6,
+    "fields": {
+      "segment": 1,
+      "hours": 12,
+      "briver_price": 149,
+      "driver_hourly_rate": 89
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 7,
+    "fields": {
+      "segment": 1,
+      "hours": 24,
+      "briver_price": 289,
+      "driver_hourly_rate": 70
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 8,
+    "fields": {
+      "segment": 1,
+      "hours": 48,
+      "briver_price": 499,
+      "driver_hourly_rate": 70
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 9,
+    "fields": {
+      "segment": 2,
+      "hours": 2,
+      "briver_price": 39,
+      "driver_hourly_rate": 105
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 10,
+    "fields": {
+      "segment": 2,
+      "hours": 4,
+      "briver_price": 59,
+      "driver_hourly_rate": 105
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 11,
+    "fields": {
+      "segment": 2,
+      "hours": 6,
+      "briver_price": 89,
+      "driver_hourly_rate": 105
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 12,
+    "fields": {
+      "segment": 2,
+      "hours": 8,
+      "briver_price": 109,
+      "driver_hourly_rate": 95
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 13,
+    "fields": {
+      "segment": 2,
+      "hours": 10,
+      "briver_price": 149,
+      "driver_hourly_rate": 95
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 14,
+    "fields": {
+      "segment": 2,
+      "hours": 12,
+      "briver_price": 179,
+      "driver_hourly_rate": 95
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 15,
+    "fields": {
+      "segment": 2,
+      "hours": 24,
+      "briver_price": 329,
+      "driver_hourly_rate": 80
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 16,
+    "fields": {
+      "segment": 2,
+      "hours": 48,
+      "briver_price": 599,
+      "driver_hourly_rate": 80
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 17,
+    "fields": {
+      "segment": 3,
+      "hours": 2,
+      "briver_price": 49,
+      "driver_hourly_rate": 115
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 18,
+    "fields": {
+      "segment": 3,
+      "hours": 4,
+      "briver_price": 79,
+      "driver_hourly_rate": 115
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 19,
+    "fields": {
+      "segment": 3,
+      "hours": 6,
+      "briver_price": 109,
+      "driver_hourly_rate": 115
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 20,
+    "fields": {
+      "segment": 3,
+      "hours": 8,
+      "briver_price": 129,
+      "driver_hourly_rate": 105
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 21,
+    "fields": {
+      "segment": 3,
+      "hours": 10,
+      "briver_price": 179,
+      "driver_hourly_rate": 105
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 22,
+    "fields": {
+      "segment": 3,
+      "hours": 12,
+      "briver_price": 199,
+      "driver_hourly_rate": 105
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 23,
+    "fields": {
+      "segment": 3,
+      "hours": 24,
+      "briver_price": 399,
+      "driver_hourly_rate": 90
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 24,
+    "fields": {
+      "segment": 3,
+      "hours": 48,
+      "briver_price": 699,
+      "driver_hourly_rate": 90
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 25,
+    "fields": {
+      "segment": 4,
+      "hours": 2,
+      "briver_price": 99,
+      "driver_hourly_rate": 150
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 26,
+    "fields": {
+      "segment": 4,
+      "hours": 4,
+      "briver_price": 149,
+      "driver_hourly_rate": 150
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 27,
+    "fields": {
+      "segment": 4,
+      "hours": 6,
+      "briver_price": 229,
+      "driver_hourly_rate": 150
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 28,
+    "fields": {
+      "segment": 4,
+      "hours": 8,
+      "briver_price": 299,
+      "driver_hourly_rate": 135
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 29,
+    "fields": {
+      "segment": 4,
+      "hours": 10,
+      "briver_price": 399,
+      "driver_hourly_rate": 135
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 30,
+    "fields": {
+      "segment": 4,
+      "hours": 12,
+      "briver_price": 499,
+      "driver_hourly_rate": 135
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 31,
+    "fields": {
+      "segment": 4,
+      "hours": 24,
+      "briver_price": 949,
+      "driver_hourly_rate": 120
+    }
+  },
+  {
+    "model": "chauffeur.charge",
+    "pk": 32,
+    "fields": {
+      "segment": 4,
+      "hours": 48,
+      "briver_price": 1799,
+      "driver_hourly_rate": 120
+    }
+  }
+]

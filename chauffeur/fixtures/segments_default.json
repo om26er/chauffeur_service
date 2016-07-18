@@ -1,0 +1,34 @@
+[
+  {
+    "model": "chauffeur.segment",
+    "pk": 1,
+    "fields": {
+      "identifier": 0,
+      "name": "Mini"
+    }
+  },
+  {
+    "model": "chauffeur.segment",
+    "pk": 2,
+    "fields": {
+      "identifier": 1,
+      "name": "Hatch"
+    }
+  },
+  {
+    "model": "chauffeur.segment",
+    "pk": 3,
+    "fields": {
+      "identifier": 2,
+      "name": "Sedan"
+    }
+  },
+  {
+    "model": "chauffeur.segment",
+    "pk": 4,
+    "fields": {
+      "identifier": 3,
+      "name": "Luxury"
+    }
+  }
+]

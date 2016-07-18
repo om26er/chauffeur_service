@@ -2,7 +2,7 @@ from datetime import timedelta
 import os
 import uuid
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.db import models
 from rest_framework.authtoken.models import Token
@@ -32,13 +32,6 @@ def get_image_file_path(instance, filename):
     name = str(uuid.uuid4()).replace('-', '_')
     filename = '{}.{}'.format(name, ext)
     return os.path.join('images', filename)
-
-
-@receiver(post_save)
-def process_save(sender, instance=None, created=False, **kwargs):
-    if created:
-        if isinstance(instance, HireRequest):
-            Review.objects.create(request=instance)
 
 
 class ChauffeurUser(BaseUser):
@@ -75,6 +68,15 @@ class ChauffeurUser(BaseUser):
     status = models.IntegerField(default=1)
 
 
+@receiver(pre_delete, sender=ChauffeurUser)
+def cascade_photos(*args, **kwargs):
+    instance = kwargs['instance']
+    instance.photo.delete()
+    instance.doc1.delete()
+    instance.doc2.delete()
+    instance.doc3.delete()
+
+
 class PushIDs(models.Model):
     user = models.ForeignKey(
         ChauffeurUser,
@@ -104,7 +106,7 @@ class HireRequest(models.Model):
 
     @property
     def end_time(self):
-        return self.start_time + timedelta(minutes=self.time_span)
+        return self.start_time + timedelta(hours=self.time_span)
 
     @property
     def grace_pre(self):
@@ -135,6 +137,12 @@ class HireRequest(models.Model):
             self.driver.email,
             self.start_time.__str__()
         )
+
+
+@receiver(post_save, sender=HireRequest)
+def process_save(sender, instance=None, created=False, **kwargs):
+    if created:
+        Review.objects.create(request=instance)
 
 
 class Review(models.Model):
@@ -183,3 +191,33 @@ class Review(models.Model):
 
         if self.driver_review and not self.customer_review:
             return REVIEW_STATUS_DRIVER_DONE
+
+
+class Segment(models.Model):
+    identifier = models.IntegerField(blank=False)
+    name = models.CharField(max_length=255, blank=False)
+
+    def __str__(self):
+        return self.name
+
+
+class Charge(models.Model):
+    segment = models.ForeignKey(Segment)
+    hours = models.IntegerField(blank=False)
+    briver_price = models.IntegerField(blank=False)
+    driver_hourly_rate = models.IntegerField(blank=False)
+
+    @property
+    def driver_price(self):
+        return self.hours * self.driver_hourly_rate
+
+    @property
+    def total_price(self):
+        return self.driver_price + self.briver_price
+
+    def __str__(self):
+        return 'Segment: {}, Hours: {}, Pricing: {}'.format(
+            self.segment.name,
+            self.hours,
+            self.total_price
+        )

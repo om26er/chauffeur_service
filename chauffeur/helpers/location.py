@@ -32,7 +32,7 @@ def filter_available_drivers(base_location, radius, start_time, time_span):
         is_active=True
     )
     start_time = resolve_time(start_time)
-    time_span = datetime.timedelta(minutes=int(time_span))
+    time_span = datetime.timedelta(hours=int(time_span))
     base_location = get_location_from_string(base_location)
 
     for driver in drivers:

@@ -3,6 +3,7 @@ import datetime
 from django.utils import timezone
 from rest_framework.generics import (
     ListAPIView,
+    RetrieveAPIView,
     RetrieveUpdateAPIView,
     CreateAPIView,
     GenericAPIView,
@@ -20,6 +21,7 @@ from chauffeur.models import (
     HireRequest,
     Review,
     PushIDs,
+    Charge,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
     HIRE_REQUEST_PENDING,
@@ -40,6 +42,8 @@ from chauffeur.serializers import (
     HireResponseSerializer,
     ReviewSerializer,
     PushIdSerializer,
+    PricingSerializer,
+    PriceValidator,
 )
 from chauffeur.responses import (
     BadRequest,
@@ -55,6 +59,18 @@ from chauffeur.helpers import (
     location as location_helpers,
     driver as driver_helpers,
 )
+
+
+def update_end_time_to_string(serializer_data):
+    request_end_time = serializer_data['end_time']
+    if isinstance(request_end_time, datetime.datetime):
+        serializer_data.update({'end_time': request_end_time.isoformat()})
+    return serializer_data
+
+
+def get_user_push_keys(user_instance):
+    push_instances = PushIDs.objects.filter(user=user_instance)
+    return [obj.push_key for obj in push_instances]
 
 
 class RegisterCustomer(CreateAPIView):
@@ -121,10 +137,25 @@ class UserPublicProfile(APIView):
 
 
 class ActiveRequests(ListAPIView):
+    permission_classes = (permissions.IsAuthenticated, )
     serializer_class = HireRequestSerializer
 
+    def is_customer(self):
+        return self.request.user.user_type == USER_TYPE_CUSTOMER
+
+    def is_driver(self):
+        return self.request.user.user_type == USER_TYPE_DRIVER
+
     def get_queryset(self):
+        if self.is_customer():
+            id_parameter = 'customer_id'
+        elif self.is_driver():
+            id_parameter = 'driver_id'
+        else:
+            id_parameter = None
+
         return HireRequest.objects.filter(
+            **{id_parameter: self.request.user.id},
             status__in=[
                 HIRE_REQUEST_PENDING,
                 HIRE_REQUEST_ACCEPTED,
@@ -189,7 +220,7 @@ class RequestHire(APIView):
             if start_time < timezone.now() - request_grace_period:
                 data = {'start_time': 'Must not be behind current time.'}
                 return BadRequest(data)
-        time_span = datetime.timedelta(minutes=int(time_span))
+        time_span = datetime.timedelta(hours=int(time_span))
         driver = self._get_driver(int(driver_id))
 
         if driver_helpers.is_driver_available_for_hire(
@@ -198,10 +229,10 @@ class RequestHire(APIView):
                 start_time + time_span
         ):
             serializer.save()
-            push_instances = PushIDs.objects.filter(user=driver)
-            push_ids = [i.push_key for i in push_instances]
-            h.send_hire_request_push_notification(push_ids, serializer.data)
-            return Ok(serializer.data)
+            data = update_end_time_to_string(serializer.data)
+            push_ids = get_user_push_keys(driver)
+            h.send_hire_request_push_notification(push_ids, data)
+            return Ok(data)
         else:
             return Conflict()
 
@@ -274,22 +305,20 @@ class RespondHire(GenericAPIView):
             HIRE_REQUEST_DONE
         ]
         if new_status in LIST:
-            push_instances = PushIDs.objects.filter(user=customer.user)
-            push_ids = [i.push_key for i in push_instances]
-            h.send_hire_response_push_notification(push_ids, serializer.data)
+            data = update_end_time_to_string(serializer.data)
+            push_ids = get_user_push_keys(customer.user)
+            h.send_hire_response_push_notification(push_ids, data)
 
         if new_status == HIRE_REQUEST_ACCEPTED:
             driver = UserHelpers(id=self.request.user.id)
             driver.append_hire_count()
             customer.append_hire_count()
-            superseded_data = serializer.data
-            superseded_data.update({'status': HIRE_REQUEST_CONFLICT})
+            data.update({'status': HIRE_REQUEST_CONFLICT})
             h.send_superseded_notification(
                 self.request.user,
                 hire_request,
-                superseded_data
+                data
             )
-
         return Ok(serializer.data)
 
 
@@ -311,7 +340,7 @@ class PushId(APIView):
 
     def post(self, *args, **kwargs):
         data = self.request.data
-        data.update({'user_id': self.request.user.id})
+        data.update({'user': self.request.user.id})
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
 
@@ -324,6 +353,7 @@ class PushId(APIView):
                 data=self.request.data,
                 partial=True
             )
+            serializer.is_valid(raise_exception=True)
             serializer.save()
         except PushIDs.DoesNotExist:
             serializer.save()
@@ -381,3 +411,16 @@ def calculate_and_set_review(instance, review_stars):
     instance.review_count += 1
     instance.review_stars = new_total / instance.review_count
     instance.save()
+
+
+class GetPrice(APIView):
+    def post(self, *args, **kwargs):
+        validator = PriceValidator(data=self.request.data)
+        validator.is_valid(raise_exception=True)
+        hours = int(self.request.data.get('hours'))
+        segment = int(self.request.data.get('segment'))
+        obj = Charge.objects.filter(segment_id=segment, hours=hours)
+        if not obj:
+            return BadRequest({'message': 'Non supported price filter.'})
+        serializer = PricingSerializer(instance=obj[0])
+        return Ok(serializer.data)
