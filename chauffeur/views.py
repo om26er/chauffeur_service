@@ -61,6 +61,18 @@ from chauffeur.helpers import (
 )
 
 
+def update_end_time_to_string(serializer_data):
+    request_end_time = serializer_data['end_time']
+    if isinstance(request_end_time, datetime.datetime):
+        serializer_data.update({'end_time': request_end_time.isoformat()})
+    return serializer_data
+
+
+def get_user_push_keys(user_instance):
+    push_instances = PushIDs.objects.filter(user=user_instance)
+    return [obj.push_key for obj in push_instances]
+
+
 class RegisterCustomer(CreateAPIView):
     serializer_class = CustomerSerializer
 
@@ -202,12 +214,8 @@ class RequestHire(APIView):
                 start_time + time_span
         ):
             serializer.save()
-            data = serializer.data
-            request_end_time = data['end_time']
-            if isinstance(request_end_time, datetime.datetime):
-                data.update({'end_time': request_end_time.isoformat()})
-            push_instances = PushIDs.objects.filter(user=driver)
-            push_ids = [i.push_key for i in push_instances]
+            data = update_end_time_to_string(serializer.data)
+            push_ids = get_user_push_keys(driver)
             h.send_hire_request_push_notification(push_ids, data)
             return Ok(data)
         else:
@@ -282,22 +290,20 @@ class RespondHire(GenericAPIView):
             HIRE_REQUEST_DONE
         ]
         if new_status in LIST:
-            push_instances = PushIDs.objects.filter(user=customer.user)
-            push_ids = [i.push_key for i in push_instances]
-            h.send_hire_response_push_notification(push_ids, serializer.data)
+            data = update_end_time_to_string(serializer.data)
+            push_ids = get_user_push_keys(customer.user)
+            h.send_hire_response_push_notification(push_ids, data)
 
         if new_status == HIRE_REQUEST_ACCEPTED:
             driver = UserHelpers(id=self.request.user.id)
             driver.append_hire_count()
             customer.append_hire_count()
-            superseded_data = serializer.data
-            superseded_data.update({'status': HIRE_REQUEST_CONFLICT})
+            data.update({'status': HIRE_REQUEST_CONFLICT})
             h.send_superseded_notification(
                 self.request.user,
                 hire_request,
-                superseded_data
+                data
             )
-
         return Ok(serializer.data)
 
 
