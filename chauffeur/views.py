@@ -21,6 +21,7 @@ from chauffeur.models import (
     Review,
     PushIDs,
     Charge,
+    Segment,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
     HIRE_REQUEST_PENDING,
@@ -192,6 +193,13 @@ class RequestHire(APIView):
         except ChauffeurUser.DoesNotExist:
             return None
 
+    def get_price_data(self, time_span):
+        vehicle_type = self.request.user.vehicle_type
+        segment = Segment.objects.get(identifier=vehicle_type)
+        price = Charge.objects.get(segment=segment, hours=int(time_span))
+        serializer = PricingSerializer(instance=price)
+        return serializer.data
+
     def post(self, *args, **kwargs):
         customer = self.request.user
         self.request.data.update({'customer': customer.id})
@@ -201,7 +209,7 @@ class RequestHire(APIView):
             self.request.data.update({'start_time': now})
             start_time = now
         driver_id = self.request.data.get('driver')
-        time_span = self.request.data.get('time_span')
+        time_span_orig = self.request.data.get('time_span')
         serializer = HireRequestSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -214,7 +222,7 @@ class RequestHire(APIView):
             if start_time < timezone.now() - request_grace_period:
                 data = {'start_time': 'Must not be behind current time.'}
                 return BadRequest(data)
-        time_span = datetime.timedelta(hours=int(time_span))
+        time_span = datetime.timedelta(hours=int(time_span_orig))
         driver = self._get_driver(int(driver_id))
 
         if driver_helpers.is_driver_available_for_hire(
@@ -224,6 +232,7 @@ class RequestHire(APIView):
         ):
             serializer.save()
             data = update_end_time_to_string(serializer.data)
+            data.update({'price': self.get_price_data(time_span_orig)})
             push_ids = get_user_push_keys(driver)
             h.send_hire_request_push_notification(push_ids, data)
             return Ok(data)

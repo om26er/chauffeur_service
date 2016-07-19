@@ -116,7 +116,23 @@ class DriverSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class PricingSerializer(serializers.ModelSerializer):
+    hours = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Charge
+        fields = (
+            'segment',
+            'hours',
+            'briver_price',
+            'driver_price',
+            'driver_hourly_rate',
+            'total_price',
+        )
+
+
 class HireRequestSerializer(serializers.ModelSerializer):
+    price = PricingSerializer(read_only=True)
     start_time = serializers.DateTimeField(required=False)
     time_span = serializers.IntegerField(required=True)
     location = serializers.CharField(required=True)
@@ -140,6 +156,7 @@ class HireRequestSerializer(serializers.ModelSerializer):
             'driver_phone_number',
             'customer_name',
             'customer_phone_number',
+            'price',
         )
 
 
@@ -186,21 +203,6 @@ class PushIdSerializer(serializers.ModelSerializer):
             'user',
             'device_id',
             'push_key',
-        )
-
-
-class PricingSerializer(serializers.ModelSerializer):
-    hours = serializers.IntegerField(required=True)
-
-    class Meta:
-        model = Charge
-        fields = (
-            'segment',
-            'hours',
-            'briver_price',
-            'driver_price',
-            'driver_hourly_rate',
-            'total_price',
         )
 
 
