@@ -80,6 +80,13 @@ def get_serializer_class_by_user(user):
         return DriverSerializer
 
 
+def add_price_to_data(data):
+    obj = Charge.objects.get(id=int(data['price']))
+    serializer = PricingSerializer(instance=obj)
+    data.update({'price': serializer.data})
+    return data
+
+
 class RegisterCustomer(CreateAPIView):
     serializer_class = CustomerSerializer
 
@@ -193,12 +200,10 @@ class RequestHire(APIView):
         except ChauffeurUser.DoesNotExist:
             return None
 
-    def get_price_data(self, time_span):
+    def get_price(self, time_span):
         vehicle_type = self.request.user.vehicle_type
         segment = Segment.objects.get(identifier=vehicle_type)
-        price = Charge.objects.get(segment=segment, hours=int(time_span))
-        serializer = PricingSerializer(instance=price)
-        return serializer.data
+        return Charge.objects.get(segment=segment, hours=int(time_span))
 
     def post(self, *args, **kwargs):
         customer = self.request.user
@@ -209,7 +214,9 @@ class RequestHire(APIView):
             self.request.data.update({'start_time': now})
             start_time = now
         driver_id = self.request.data.get('driver')
-        time_span_orig = self.request.data.get('time_span')
+        time_span = self.request.data.get('time_span')
+        price = self.get_price(time_span)
+        self.request.data.update({'price': price.id})
         serializer = HireRequestSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -222,7 +229,7 @@ class RequestHire(APIView):
             if start_time < timezone.now() - request_grace_period:
                 data = {'start_time': 'Must not be behind current time.'}
                 return BadRequest(data)
-        time_span = datetime.timedelta(hours=int(time_span_orig))
+        time_span = datetime.timedelta(hours=int(time_span))
         driver = self._get_driver(int(driver_id))
 
         if driver_helpers.is_driver_available_for_hire(
@@ -232,7 +239,7 @@ class RequestHire(APIView):
         ):
             serializer.save()
             data = update_end_time_to_string(serializer.data)
-            data.update({'price': self.get_price_data(time_span_orig)})
+            add_price_to_data(data)
             push_ids = get_user_push_keys(driver)
             h.send_hire_request_push_notification(push_ids, data)
             return Ok(data)
@@ -333,7 +340,7 @@ class RespondHire(GenericAPIView):
         return Ok(serializer.data)
 
 
-class ListRequests(ListAPIView):
+class ListRequests(APIView):
     serializer_class = HireRequestSerializer
     permission_classes = (permissions.IsAuthenticated, )
 
@@ -343,6 +350,11 @@ class ListRequests(ListAPIView):
         elif self.request.user.user_type == USER_TYPE_DRIVER:
             return HireRequest.objects.filter(driver_id=self.request.user.id)
         return None
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(self.get_queryset(), many=True)
+        data = [add_price_to_data(dict(d)) for d in serializer.data]
+        return Ok(data)
 
 
 class PushId(APIView):

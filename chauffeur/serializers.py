@@ -132,7 +132,6 @@ class PricingSerializer(serializers.ModelSerializer):
 
 
 class HireRequestSerializer(serializers.ModelSerializer):
-    price = PricingSerializer(read_only=True)
     start_time = serializers.DateTimeField(required=False)
     time_span = serializers.IntegerField(required=True)
     location = serializers.CharField(required=True)
