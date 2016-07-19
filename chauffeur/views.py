@@ -138,7 +138,7 @@ class UserPublicProfile(APIView):
         return Ok(serializer.data)
 
 
-class ActiveRequests(ListAPIView):
+class ActiveRequests(APIView):
     permission_classes = (permissions.IsAuthenticated, )
     serializer_class = HireRequestSerializer
 
@@ -164,6 +164,11 @@ class ActiveRequests(ListAPIView):
             ],
             **{id_parameter: self.request.user.id}
         )
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(self.get_queryset(), many=True)
+        data = [add_price_to_data(dict(d)) for d in serializer.data]
+        return Ok(data)
 
 
 class FilterDrivers(APIView):
