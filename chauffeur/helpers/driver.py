@@ -1,7 +1,6 @@
 from chauffeur.models import (
     HireRequest,
     HIRE_REQUEST_ACCEPTED,
-    HIRE_REQUEST_DONE,
     HIRE_REQUEST_IN_PROGRESS,
     SERVICE_GRACE_PERIOD,
 )
@@ -9,7 +8,6 @@ from chauffeur.models import (
 JOB_ACTIVE_STATES = (
     HIRE_REQUEST_ACCEPTED,
     HIRE_REQUEST_IN_PROGRESS,
-    HIRE_REQUEST_DONE,
 )
 
 
