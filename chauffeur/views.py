@@ -393,6 +393,10 @@ class ReviewView(RetrieveUpdateAPIView):
     permission_classes = (permissions.IsAuthenticated, )
     http_method_names = ['put', 'get']
 
+    def get_object(self):
+        request_id = self.kwargs.get('pk')
+        return Review.objects.get(request_id=request_id)
+
     def get_queryset(self):
         request_id = self.kwargs.get('pk')
         return Review.objects.get(request_id=request_id)
