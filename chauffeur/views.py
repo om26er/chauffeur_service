@@ -3,7 +3,6 @@ import datetime
 from django.utils import timezone
 from rest_framework.generics import (
     ListAPIView,
-    RetrieveAPIView,
     RetrieveUpdateAPIView,
     CreateAPIView,
     GenericAPIView,
@@ -73,6 +72,13 @@ def get_user_push_keys(user_instance):
     return [obj.push_key for obj in push_instances]
 
 
+def get_serializer_class_by_user(user):
+    if user.user_type == USER_TYPE_CUSTOMER:
+        return CustomerSerializer
+    elif user.user_type == USER_TYPE_DRIVER:
+        return DriverSerializer
+
+
 class RegisterCustomer(CreateAPIView):
     serializer_class = CustomerSerializer
 
@@ -85,33 +91,21 @@ class ActivateAccount(AccountActivationAPIView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
-        user = self.get_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return CustomerSerializer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return DriverSerializer
+        return get_serializer_class_by_user(self.get_user())
 
 
 class Login(LoginAPIView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
-        user = self.get_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return CustomerSerializer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return DriverSerializer
+        return get_serializer_class_by_user(self.get_user())
 
 
 class UserProfile(RetrieveUpdateDestroyProfileView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
-        user = self.get_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return CustomerSerializer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return DriverSerializer
+        return get_serializer_class_by_user(self.get_user())
 
 
 class UserPublicProfile(APIView):
@@ -155,12 +149,12 @@ class ActiveRequests(ListAPIView):
             id_parameter = None
 
         return HireRequest.objects.filter(
-            **{id_parameter: self.request.user.id},
             status__in=[
                 HIRE_REQUEST_PENDING,
                 HIRE_REQUEST_ACCEPTED,
                 HIRE_REQUEST_IN_PROGRESS
-            ]
+            ],
+            **{id_parameter: self.request.user.id}
         )
 
 
@@ -302,11 +296,19 @@ class RespondHire(GenericAPIView):
             HIRE_REQUEST_ACCEPTED,
             HIRE_REQUEST_DECLINED,
             HIRE_REQUEST_IN_PROGRESS,
-            HIRE_REQUEST_DONE
         ]
         if new_status in LIST:
             data = update_end_time_to_string(serializer.data)
             push_ids = get_user_push_keys(customer.user)
+            h.send_hire_response_push_notification(push_ids, data)
+
+        if new_status == HIRE_REQUEST_DONE:
+            driver = UserHelpers(id=self.request.user.id)
+            data = update_end_time_to_string(serializer.data)
+            if self.is_driver():
+                push_ids = get_user_push_keys(customer.user)
+            else:
+                push_ids = get_user_push_keys(driver.user)
             h.send_hire_response_push_notification(push_ids, data)
 
         if new_status == HIRE_REQUEST_ACCEPTED:
