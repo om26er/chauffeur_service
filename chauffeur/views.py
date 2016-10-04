@@ -3,7 +3,6 @@ import datetime
 from django.utils import timezone
 from rest_framework.generics import (
     ListAPIView,
-    RetrieveAPIView,
     RetrieveUpdateAPIView,
     CreateAPIView,
     GenericAPIView,
@@ -22,6 +21,7 @@ from chauffeur.models import (
     Review,
     PushIDs,
     Charge,
+    Segment,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
     HIRE_REQUEST_PENDING,
@@ -73,6 +73,20 @@ def get_user_push_keys(user_instance):
     return [obj.push_key for obj in push_instances]
 
 
+def get_serializer_class_by_user(user):
+    if user.user_type == USER_TYPE_CUSTOMER:
+        return CustomerSerializer
+    elif user.user_type == USER_TYPE_DRIVER:
+        return DriverSerializer
+
+
+def add_price_to_data(data):
+    obj = Charge.objects.get(id=int(data['price']))
+    serializer = PricingSerializer(instance=obj)
+    data.update({'price': serializer.data})
+    return data
+
+
 class RegisterCustomer(CreateAPIView):
     serializer_class = CustomerSerializer
 
@@ -85,33 +99,21 @@ class ActivateAccount(AccountActivationAPIView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
-        user = self.get_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return CustomerSerializer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return DriverSerializer
+        return get_serializer_class_by_user(self.get_user())
 
 
 class Login(LoginAPIView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
-        user = self.get_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return CustomerSerializer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return DriverSerializer
+        return get_serializer_class_by_user(self.get_user())
 
 
 class UserProfile(RetrieveUpdateDestroyProfileView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
-        user = self.get_user()
-        if user.user_type == USER_TYPE_CUSTOMER:
-            return CustomerSerializer
-        elif user.user_type == USER_TYPE_DRIVER:
-            return DriverSerializer
+        return get_serializer_class_by_user(self.get_user())
 
 
 class UserPublicProfile(APIView):
@@ -136,7 +138,7 @@ class UserPublicProfile(APIView):
         return Ok(serializer.data)
 
 
-class ActiveRequests(ListAPIView):
+class ActiveRequests(APIView):
     permission_classes = (permissions.IsAuthenticated, )
     serializer_class = HireRequestSerializer
 
@@ -155,13 +157,18 @@ class ActiveRequests(ListAPIView):
             id_parameter = None
 
         return HireRequest.objects.filter(
-            **{id_parameter: self.request.user.id},
             status__in=[
                 HIRE_REQUEST_PENDING,
                 HIRE_REQUEST_ACCEPTED,
                 HIRE_REQUEST_IN_PROGRESS
-            ]
+            ],
+            **{id_parameter: self.request.user.id}
         )
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(self.get_queryset(), many=True)
+        data = [add_price_to_data(dict(d)) for d in serializer.data]
+        return Ok(data)
 
 
 class FilterDrivers(APIView):
@@ -198,6 +205,11 @@ class RequestHire(APIView):
         except ChauffeurUser.DoesNotExist:
             return None
 
+    def get_price(self, time_span):
+        vehicle_type = self.request.user.vehicle_type
+        segment = Segment.objects.get(identifier=vehicle_type)
+        return Charge.objects.get(segment=segment, hours=int(time_span))
+
     def post(self, *args, **kwargs):
         customer = self.request.user
         self.request.data.update({'customer': customer.id})
@@ -208,6 +220,8 @@ class RequestHire(APIView):
             start_time = now
         driver_id = self.request.data.get('driver')
         time_span = self.request.data.get('time_span')
+        price = self.get_price(time_span)
+        self.request.data.update({'price': price.id})
         serializer = HireRequestSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -230,6 +244,7 @@ class RequestHire(APIView):
         ):
             serializer.save()
             data = update_end_time_to_string(serializer.data)
+            add_price_to_data(data)
             push_ids = get_user_push_keys(driver)
             h.send_hire_request_push_notification(push_ids, data)
             return Ok(data)
@@ -302,11 +317,19 @@ class RespondHire(GenericAPIView):
             HIRE_REQUEST_ACCEPTED,
             HIRE_REQUEST_DECLINED,
             HIRE_REQUEST_IN_PROGRESS,
-            HIRE_REQUEST_DONE
         ]
         if new_status in LIST:
             data = update_end_time_to_string(serializer.data)
             push_ids = get_user_push_keys(customer.user)
+            h.send_hire_response_push_notification(push_ids, data)
+
+        if new_status == HIRE_REQUEST_DONE:
+            driver = UserHelpers(id=self.request.user.id)
+            data = update_end_time_to_string(serializer.data)
+            if self.is_driver():
+                push_ids = get_user_push_keys(customer.user)
+            else:
+                push_ids = get_user_push_keys(driver.user)
             h.send_hire_response_push_notification(push_ids, data)
 
         if new_status == HIRE_REQUEST_ACCEPTED:
@@ -322,7 +345,7 @@ class RespondHire(GenericAPIView):
         return Ok(serializer.data)
 
 
-class ListRequests(ListAPIView):
+class ListRequests(APIView):
     serializer_class = HireRequestSerializer
     permission_classes = (permissions.IsAuthenticated, )
 
@@ -332,6 +355,11 @@ class ListRequests(ListAPIView):
         elif self.request.user.user_type == USER_TYPE_DRIVER:
             return HireRequest.objects.filter(driver_id=self.request.user.id)
         return None
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(self.get_queryset(), many=True)
+        data = [add_price_to_data(dict(d)) for d in serializer.data]
+        return Ok(data)
 
 
 class PushId(APIView):
@@ -364,6 +392,10 @@ class ReviewView(RetrieveUpdateAPIView):
     serializer_class = ReviewSerializer
     permission_classes = (permissions.IsAuthenticated, )
     http_method_names = ['put', 'get']
+
+    def get_object(self):
+        request_id = self.kwargs.get('pk')
+        return Review.objects.get(request_id=request_id)
 
     def get_queryset(self):
         request_id = self.kwargs.get('pk')
