@@ -2,7 +2,6 @@ import datetime
 
 from django.utils import timezone
 from rest_framework.generics import (
-    ListAPIView,
     RetrieveUpdateAPIView,
     CreateAPIView,
     GenericAPIView,
@@ -10,8 +9,8 @@ from rest_framework.generics import (
 from rest_framework.views import APIView
 from rest_framework import permissions
 from simple_login.views import (
-    RetrieveUpdateDestroyProfileView,
-    AccountActivationAPIView,
+    RetrieveUpdateDestroyProfileAPIView,
+    ActivationAPIView,
     LoginAPIView,
 )
 
@@ -95,7 +94,7 @@ class RegisterDriver(CreateAPIView):
     serializer_class = DriverSerializer
 
 
-class ActivateAccount(AccountActivationAPIView):
+class ActivateAccount(ActivationAPIView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
@@ -109,7 +108,7 @@ class Login(LoginAPIView):
         return get_serializer_class_by_user(self.get_user())
 
 
-class UserProfile(RetrieveUpdateDestroyProfileView):
+class UserProfile(RetrieveUpdateDestroyProfileAPIView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
