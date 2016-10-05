@@ -1,6 +1,7 @@
 import datetime
 
 from django.utils import timezone
+from django.http import HttpResponse
 from rest_framework.generics import (
     RetrieveUpdateAPIView,
     CreateAPIView,
@@ -51,6 +52,8 @@ from chauffeur.responses import (
     Ok,
     Conflict,
 )
+from chauffeur.paytm import test as paytm_test
+from chauffeur.paytm import response as paytm_response
 from chauffeur import permissions as custom_permissions
 from chauffeur import helpers as h
 from chauffeur.helpers.user import UserHelpers
@@ -455,3 +458,27 @@ class GetPrice(APIView):
             return BadRequest({'message': 'Non supported price filter.'})
         serializer = PricingSerializer(instance=obj[0])
         return Ok(serializer.data)
+
+
+class PaytmView(APIView):
+    def get(self, *args, **kwargs):
+        request_endpoint = self.request.path_info.split('/')[-1]
+        if request_endpoint == 'test.cgi':
+            return HttpResponse(paytm_test.assemble_html())
+        else:
+            return HttpResponse(
+                paytm_response.read_response_and_show_result(
+                    dict(self.request.query_params.lists())
+                )
+            )
+
+    def post(self, *args, **kwargs):
+        request_endpoint = self.request.path_info.split('/')[-1]
+        if request_endpoint == 'test.cgi':
+            return HttpResponse(paytm_test.assemble_html())
+        else:
+            return HttpResponse(
+                paytm_response.read_response_and_show_result(
+                    dict(self.request.data.lists())
+                )
+            )
