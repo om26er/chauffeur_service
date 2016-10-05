@@ -1,90 +1,52 @@
 from django.conf.urls import url
-from django.conf import settings
-from django.conf.urls.static import static
-from simple_login import views as simple_login_views
+from simple_login.views import (
+    PasswordResetRequestAPIView,
+    PasswordChangeAPIView,
+    StatusAPIView,
+    ActivationKeyRequestAPIView,
+)
 
-from chauffeur import views as chauffeur_views
+from chauffeur.views import (
+    RegisterCustomer,
+    RegisterDriver,
+    ActivateAccount,
+    Login,
+    UserProfile,
+    PushId,
+    UserPublicProfile,
+    ActiveRequests,
+    RequestHire,
+    RespondHire,
+    ListRequests,
+    ReviewView,
+    FilterDrivers,
+    GetPrice,
+    PaytmView,
+)
 from chauffeur.models import ChauffeurUser
 
 urlpatterns = [
-    url(
-        r'^api/user/customer-registration$',
-        chauffeur_views.RegisterCustomer.as_view()
-    ),
-    url(
-        r'^api/user/driver-registration$',
-        chauffeur_views.RegisterDriver.as_view()
-    ),
-    url(
-        r'^api/user/activation$',
-        chauffeur_views.ActivateAccount.as_view()
-    ),
-    url(
-        r'^api/user/login$',
-        chauffeur_views.Login.as_view()
-    ),
-    url(
-        r'^api/user/forgotten-password$',
-        simple_login_views.RequestPasswordReset.as_view(
-            user_model=ChauffeurUser
-        )
-    ),
-    url(
-        r'^api/user/change-password$',
-        simple_login_views.ChangePassword.as_view(
-            user_model=ChauffeurUser
-        )
-    ),
-    url(
-        r'^api/user/status$',
-        simple_login_views.AccountStatus.as_view(
-            user_model=ChauffeurUser
-        )
-    ),
-    url(
-        r'^api/user/me$',
-        chauffeur_views.UserProfile.as_view()
-    ),
-    url(
-        r'^api/user/request-activation-key$',
-        simple_login_views.RequestActivationKey.as_view(
-            user_model=ChauffeurUser
-        )
-    ),
-    url(
-        r'^api/user/push-id/add$',
-        chauffeur_views.PushId.as_view()
-    ),
-    url(
-        r'^api/user/(?P<pk>\d+)/public-profile$',
-        chauffeur_views.UserPublicProfile.as_view()
-    ),
-    url(
-        r'^api/user/(?P<pk>\d+)/active-requests',
-        chauffeur_views.ActiveRequests.as_view()
-    ),
-    url(
-        r'^api/hire/create$',
-        chauffeur_views.RequestHire.as_view()
-    ),
-    url(
-        r'^api/hire/(?P<pk>\d+)/update$',
-        chauffeur_views.RespondHire.as_view()
-    ),
-    url(
-        r'^api/hire/list$',
-        chauffeur_views.ListRequests.as_view()
-    ),
-    url(
-        r'^api/hire/(?P<pk>\d+)/review$',
-        chauffeur_views.ReviewView.as_view()
-    ),
-    url(
-        r'^api/hire/filter-drivers$',
-        chauffeur_views.FilterDrivers.as_view()
-    ),
-    url(
-        r'^api/hire/get-price$',
-        chauffeur_views.GetPrice.as_view()
-    ),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    url(r'^api/user/customer-registration$', RegisterCustomer.as_view()),
+    url(r'^api/user/driver-registration$', RegisterDriver.as_view()),
+    url(r'^api/user/activation$', ActivateAccount.as_view()),
+    url(r'^api/user/login$',  Login.as_view()),
+    url(r'^api/user/forgotten-password$',
+        PasswordResetRequestAPIView.as_view(user_model=ChauffeurUser)),
+    url(r'^api/user/change-password$',
+        PasswordChangeAPIView.as_view(user_model=ChauffeurUser)),
+    url(r'^api/user/status$', StatusAPIView.as_view(user_model=ChauffeurUser)),
+    url(r'^api/user/me$', UserProfile.as_view()),
+    url(r'^api/user/request-activation-key$',
+        ActivationKeyRequestAPIView.as_view(user_model=ChauffeurUser)),
+    url(r'^api/user/push-id/add$', PushId.as_view()),
+    url(r'^api/user/(?P<pk>\d+)/public-profile$', UserPublicProfile.as_view()),
+    url(r'^api/user/(?P<pk>\d+)/active-requests', ActiveRequests.as_view()),
+    url(r'^api/hire/create$', RequestHire.as_view()),
+    url(r'^api/hire/(?P<pk>\d+)/update$', RespondHire.as_view()),
+    url(r'^api/hire/list$', ListRequests.as_view()),
+    url(r'^api/hire/(?P<pk>\d+)/review$', ReviewView.as_view()),
+    url(r'^api/hire/filter-drivers$', FilterDrivers.as_view()),
+    url(r'^api/hire/get-price$', GetPrice.as_view()),
+    url(r'^api/response.cgi$', PaytmView.as_view()),
+    url(r'^api/test.cgi$', PaytmView.as_view()),
+]

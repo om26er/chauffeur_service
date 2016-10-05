@@ -1,8 +1,8 @@
 import datetime
 
 from django.utils import timezone
+from django.http import HttpResponse
 from rest_framework.generics import (
-    ListAPIView,
     RetrieveUpdateAPIView,
     CreateAPIView,
     GenericAPIView,
@@ -10,8 +10,8 @@ from rest_framework.generics import (
 from rest_framework.views import APIView
 from rest_framework import permissions
 from simple_login.views import (
-    RetrieveUpdateDestroyProfileView,
-    AccountActivationAPIView,
+    RetrieveUpdateDestroyProfileAPIView,
+    ActivationAPIView,
     LoginAPIView,
 )
 
@@ -52,6 +52,8 @@ from chauffeur.responses import (
     Ok,
     Conflict,
 )
+from chauffeur.paytm import test as paytm_test
+from chauffeur.paytm import response as paytm_response
 from chauffeur import permissions as custom_permissions
 from chauffeur import helpers as h
 from chauffeur.helpers.user import UserHelpers
@@ -95,7 +97,7 @@ class RegisterDriver(CreateAPIView):
     serializer_class = DriverSerializer
 
 
-class ActivateAccount(AccountActivationAPIView):
+class ActivateAccount(ActivationAPIView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
@@ -109,7 +111,7 @@ class Login(LoginAPIView):
         return get_serializer_class_by_user(self.get_user())
 
 
-class UserProfile(RetrieveUpdateDestroyProfileView):
+class UserProfile(RetrieveUpdateDestroyProfileAPIView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
@@ -456,3 +458,27 @@ class GetPrice(APIView):
             return BadRequest({'message': 'Non supported price filter.'})
         serializer = PricingSerializer(instance=obj[0])
         return Ok(serializer.data)
+
+
+class PaytmView(APIView):
+    def get(self, *args, **kwargs):
+        request_endpoint = self.request.path_info.split('/')[-1]
+        if request_endpoint == 'test.cgi':
+            return HttpResponse(paytm_test.assemble_html())
+        else:
+            return HttpResponse(
+                paytm_response.read_response_and_show_result(
+                    dict(self.request.query_params.lists())
+                )
+            )
+
+    def post(self, *args, **kwargs):
+        request_endpoint = self.request.path_info.split('/')[-1]
+        if request_endpoint == 'test.cgi':
+            return HttpResponse(paytm_test.assemble_html())
+        else:
+            return HttpResponse(
+                paytm_response.read_response_and_show_result(
+                    dict(self.request.data.lists())
+                )
+            )
