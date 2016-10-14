@@ -55,7 +55,7 @@ class ChauffeurUser(BaseUser):
     driver_filter_radius = models.IntegerField(default=15)
     # Driver specific preference fields
     location_reporting_type = models.IntegerField(default=1)
-    location_reporting_interval = models.IntegerField(default=2)
+    location_reporting_interval = models.IntegerField(default=15)
     # Common record fields
     number_of_hires = models.IntegerField(blank=True, default=0)
     review_count = models.IntegerField(default=0, blank=True)
