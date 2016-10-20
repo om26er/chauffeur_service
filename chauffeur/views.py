@@ -462,7 +462,7 @@ class GetPrice(APIView):
 class PaytmView(APIView):
     def get(self, *args, **kwargs):
         request_endpoint = self.request.path_info.split('/')[-1]
-        if request_endpoint == 'genratechecksum.cgi':
+        if request_endpoint == 'generatechecksum.cgi':
             return HttpResponse(
                 generate(dict(self.request.query_params.lists())))
         elif request_endpoint == 'verifychecksum.cgi':
@@ -474,7 +474,7 @@ class PaytmView(APIView):
 
     def post(self, *args, **kwargs):
         request_endpoint = self.request.path_info.split('/')[-1]
-        if request_endpoint == 'genratechecksum.cgi':
+        if request_endpoint == 'generatechecksum.cgi':
             return HttpResponse(generate(dict(self.request.data.lists())))
         elif request_endpoint == 'verifychecksum.cgi':
             return HttpResponse(verify(dict(self.request.data.lists())))
