@@ -47,6 +47,6 @@ urlpatterns = [
     url(r'^api/hire/(?P<pk>\d+)/review$', ReviewView.as_view()),
     url(r'^api/hire/filter-drivers$', FilterDrivers.as_view()),
     url(r'^api/hire/get-price$', GetPrice.as_view()),
-    url(r'^api/response.cgi$', PaytmView.as_view()),
-    url(r'^api/test.cgi$', PaytmView.as_view()),
+    url(r'^api/generatechecksum.cgi$', PaytmView.as_view()),
+    url(r'^api/verifychecksum.cgi$', PaytmView.as_view()),
 ]

@@ -52,8 +52,7 @@ from chauffeur.responses import (
     Ok,
     Conflict,
 )
-from chauffeur.paytm import test as paytm_test
-from chauffeur.paytm import response as paytm_response
+from chauffeur.paytm.helpers import verify, generate
 from chauffeur import permissions as custom_permissions
 from chauffeur import helpers as h
 from chauffeur.helpers.user import UserHelpers
@@ -463,22 +462,22 @@ class GetPrice(APIView):
 class PaytmView(APIView):
     def get(self, *args, **kwargs):
         request_endpoint = self.request.path_info.split('/')[-1]
-        if request_endpoint == 'test.cgi':
-            return HttpResponse(paytm_test.assemble_html())
-        else:
+        if request_endpoint == 'genratechecksum.cgi':
             return HttpResponse(
-                paytm_response.read_response_and_show_result(
-                    dict(self.request.query_params.lists())
-                )
-            )
+                generate(dict(self.request.query_params.lists())))
+        elif request_endpoint == 'verifychecksum.cgi':
+            return HttpResponse(
+                verify(dict(self.request.query_params.lists())))
+        else:
+            # Wont ever reach here
+            return HttpResponse('unknown url')
 
     def post(self, *args, **kwargs):
         request_endpoint = self.request.path_info.split('/')[-1]
-        if request_endpoint == 'test.cgi':
-            return HttpResponse(paytm_test.assemble_html())
+        if request_endpoint == 'genratechecksum.cgi':
+            return HttpResponse(generate(dict(self.request.data.lists())))
+        elif request_endpoint == 'verifychecksum.cgi':
+            return HttpResponse(verify(dict(self.request.data.lists())))
         else:
-            return HttpResponse(
-                paytm_response.read_response_and_show_result(
-                    dict(self.request.data.lists())
-                )
-            )
+            # Wont ever reach here
+            return HttpResponse('unknown url')
