@@ -42,6 +42,7 @@ class ChauffeurUser(BaseUser):
     photo = models.ImageField(blank=True, upload_to=get_image_file_path)
     # Drive specific profile fields
     bio = models.CharField(max_length=2000, blank=True)
+    gender = models.CharField(max_length=255, blank=True)
     driving_experience = models.CharField(max_length=255, blank=True)
     doc1 = models.ImageField(upload_to=get_image_file_path)
     doc2 = models.ImageField(upload_to=get_image_file_path)
@@ -52,6 +53,7 @@ class ChauffeurUser(BaseUser):
     vehicle_type = models.IntegerField(default=-1)
     vehicle_make = models.CharField(max_length=255, blank=True)
     vehicle_model = models.CharField(max_length=255, blank=True)
+    vehicle_model_year = models.CharField(max_length=255, blank=True)
     driver_filter_radius = models.IntegerField(default=15)
     # Driver specific preference fields
     location_reporting_type = models.IntegerField(default=1)

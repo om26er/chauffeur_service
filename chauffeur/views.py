@@ -452,7 +452,7 @@ class GetPrice(APIView):
         validator.is_valid(raise_exception=True)
         hours = int(self.request.data.get('hours'))
         segment = int(self.request.data.get('segment'))
-        obj = Charge.objects.filter(segment_id=segment, hours=hours)
+        obj = Charge.objects.filter(segment__identifier=segment, hours=hours)
         if not obj:
             return BadRequest({'message': 'Non supported price filter.'})
         serializer = PricingSerializer(instance=obj[0])

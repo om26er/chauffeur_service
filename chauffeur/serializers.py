@@ -31,6 +31,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     vehicle_type = serializers.IntegerField(required=True)
     vehicle_make = serializers.CharField(required=True)
     vehicle_model = serializers.CharField(required=True)
+    vehicle_model_year = serializers.CharField(required=True)
 
     class Meta:
         model = ChauffeurUser
@@ -49,6 +50,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             'vehicle_type',
             'vehicle_make',
             'vehicle_model',
+            'vehicle_model_year',
             'initial_app_payment',
             'driver_filter_radius',
         )
@@ -71,6 +73,7 @@ class DriverSerializer(serializers.ModelSerializer):
         validators=[UniqueValidator(queryset=ChauffeurUser.objects.all())]
     )
     password = serializers.CharField(write_only=True)
+    gender = serializers.CharField(required=True)
     full_name = serializers.CharField(required=True)
     phone_number = serializers.CharField(required=True)
     review_count = serializers.IntegerField(read_only=True)
@@ -87,6 +90,7 @@ class DriverSerializer(serializers.ModelSerializer):
             'user_type',
             'password',
             'email',
+            'gender',
             'full_name',
             'phone_number',
             'photo',

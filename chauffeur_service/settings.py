@@ -49,7 +49,7 @@ MIDDLEWARE_CLASSES = [
 
 ROOT_URLCONF = 'chauffeur_service.urls'
 AUTH_USER_MODEL = 'chauffeur.ChauffeurUser'
-APP_NAME = 'Chauffeur Service'
+APP_NAME = 'Briver'
 
 TEMPLATES = [
     {
