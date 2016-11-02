@@ -6,11 +6,11 @@ MERCHANT_KEY = 'CqSZYfZbmEJONJtf'
 
 
 def generate(params):
-    paramarr = dict()
-    paramarr['ORDER_ID'] = params['ORDER_ID']
-    paramarr['CHECKSUMHASH'] = checksum.generate_checksum(params, MERCHANT_KEY)
-    paramarr['payt_STATUS'] = '1'
-    return json.dumps(paramarr, separators=(',', ':'))
+    params.update(
+        {'CHECKSUMHASH': checksum.generate_checksum(params, MERCHANT_KEY)}
+    )
+    params.update({'payt_STATUS': '1'})
+    return json.dumps(params, separators=(',', ':'))
 
 
 def verify(params):

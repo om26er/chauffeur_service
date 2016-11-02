@@ -21,7 +21,9 @@ def _generate_checksum(param_dict_or_string, merchant_key, salt=None):
     hasher = hashlib.sha256(final_string.encode())
     hash_string = hasher.hexdigest()
     hash_string += salt
-    return _encode(hash_string, IV, merchant_key)
+    encoded_checksum = _encode(hash_string, IV, merchant_key)
+    # Return as decoded string
+    return encoded_checksum.decode()
 
 
 def generate_checksum(param_dict, merchant_key, salt=None):
