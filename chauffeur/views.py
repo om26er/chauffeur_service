@@ -479,7 +479,7 @@ class PaytmView(APIView):
             return HttpResponse('unknown url')
 
     def get(self, *args, **kwargs):
-        print(self.request.query_params)
+        print(self.request.query_params.dict())
         return self._common('GET')
 
     def post(self, *args, **kwargs):
