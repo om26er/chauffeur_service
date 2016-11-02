@@ -462,12 +462,14 @@ class GetPrice(APIView):
 class PaytmView(APIView):
     def _get_request_data(self, method):
         if method == 'GET':
+            print(self.request.query_params)
             data = self.request.query_params.lists()
-            print(data)
+            print(dict(data))
             return data
         else:
+            print(self.request.data)
             data = self.request.data.lists()
-            print(data)
+            print(dict(data))
             return data
 
     def _common(self, method):
