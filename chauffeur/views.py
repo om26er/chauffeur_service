@@ -462,15 +462,9 @@ class GetPrice(APIView):
 class PaytmView(APIView):
     def _get_request_data(self, method):
         if method == 'GET':
-            print(self.request.query_params)
-            data = self.request.query_params.lists()
-            print(dict(data))
-            return data
+            return self.request.query_params.lists()
         else:
-            print(self.request.data)
-            data = self.request.data.lists()
-            print(dict(data))
-            return data
+            return self.request.data.lists()
 
     def _common(self, method):
         request_endpoint = self.request.path_info.split('/')[-1]
@@ -485,7 +479,9 @@ class PaytmView(APIView):
             return HttpResponse('unknown url')
 
     def get(self, *args, **kwargs):
+        print(self.request.query_params)
         return self._common('GET')
 
     def post(self, *args, **kwargs):
+        print(self.request.data)
         return self._common('POST')
