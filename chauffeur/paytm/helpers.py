@@ -2,7 +2,7 @@ import json
 
 from chauffeur.paytm import checksum
 
-MERCHANT_KEY = 'CqSZYfZbmEJONJtf'
+MERCHANT_KEY = 'QS1_0nj!LKfq1zMA'
 
 
 def generate(params):

@@ -464,7 +464,7 @@ class PaytmView(APIView):
         if method == 'GET':
             return self.request.query_params.dict()
         else:
-            return self.request.data
+            return self.request.data.dict()
 
     def _common(self, method):
         request_endpoint = self.request.path_info.split('/')[-1]
