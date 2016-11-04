@@ -5,6 +5,7 @@ from chauffeur.models import (
     ChauffeurUser,
     Charge,
     HireRequest,
+    PricingPdf,
     Segment,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
@@ -79,6 +80,11 @@ class HireRequestAdmin(admin.ModelAdmin):
         return False
 
 
+class PricingPdfAdmin(admin.ModelAdmin):
+    class Meta:
+        model = PricingPdf
+
+
 class ChargeAdmin(admin.ModelAdmin):
     class Meta:
         model = Charge
@@ -95,4 +101,5 @@ admin.site.register(PanelAdminProxy, PanelAdmin)
 admin.site.register(HireRequest, HireRequestAdmin)
 admin.site.register(Charge, ChargeAdmin)
 admin.site.register(Segment, SegmentAdmin)
+admin.site.register(PricingPdf, PricingPdfAdmin)
 admin.site.unregister(Group)

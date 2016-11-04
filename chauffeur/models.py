@@ -228,3 +228,7 @@ class Review(models.Model):
 
         if self.driver_review and not self.customer_review:
             return REVIEW_STATUS_DRIVER_DONE
+
+
+class PricingPdf(models.Model):
+    source = models.FileField(upload_to='pricing.pdf')
