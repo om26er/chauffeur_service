@@ -237,3 +237,6 @@ class Review(models.Model):
 
 class PricingPdf(models.Model):
     source = models.FileField(upload_to=get_file_path)
+
+    def __str__(self):
+        return self.source.name
