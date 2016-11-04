@@ -27,6 +27,11 @@ USER_TYPE_DRIVER = 1
 USER_TYPE_ADMIN = 3
 
 
+def get_file_path(instance, filename):
+    ext = filename.split('.')[-1]
+    return '{}.{}'.format('pricing', ext)
+
+
 def get_image_file_path(instance, filename):
     ext = filename.split('.')[-1]
     name = str(uuid.uuid4()).replace('-', '_')
@@ -231,4 +236,4 @@ class Review(models.Model):
 
 
 class PricingPdf(models.Model):
-    source = models.FileField(upload_to='pricing.pdf')
+    source = models.FileField(upload_to=get_file_path)

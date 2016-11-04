@@ -7,7 +7,7 @@ from chauffeur.models import (
     HireRequest,
     Review,
     PushIDs,
-    Pricing,
+    PricingPdf,
     Charge,
     USER_TYPE_CUSTOMER,
     USER_TYPE_DRIVER,
@@ -217,5 +217,5 @@ class PriceValidator(serializers.Serializer):
 
 class PricingPdfSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Pricing
+        model = PricingPdf
         fields = ('source', )
