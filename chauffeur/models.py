@@ -2,6 +2,7 @@ from datetime import timedelta
 import os
 import uuid
 
+from django.conf import settings
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.db import models
@@ -28,8 +29,11 @@ USER_TYPE_ADMIN = 3
 
 
 def get_file_path(instance, filename):
-    ext = filename.split('.')[-1]
-    return '{}.{}'.format('pricing', ext)
+    output_name = '{}.{}'.format('pricing', filename.split('.')[-1])
+    file_path = os.path.join(settings.MEDIA_ROOT, output_name)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    return output_name
 
 
 def get_image_file_path(instance, filename):
