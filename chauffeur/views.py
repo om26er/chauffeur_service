@@ -460,24 +460,26 @@ class GetPrice(APIView):
 
 
 class PaytmView(APIView):
-    def get(self, *args, **kwargs):
+    def _get_request_data(self, method):
+        if method == 'GET':
+            return self.request.query_params.dict()
+        else:
+            return self.request.data.dict()
+
+    def _common(self, method):
         request_endpoint = self.request.path_info.split('/')[-1]
         if request_endpoint == 'generatechecksum.cgi':
             return HttpResponse(
-                generate(dict(self.request.query_params.lists())))
+                generate(dict(self._get_request_data(method))))
         elif request_endpoint == 'verifychecksum.cgi':
             return HttpResponse(
-                verify(dict(self.request.query_params.lists())))
+                verify(dict(self._get_request_data(method))))
         else:
             # Wont ever reach here
             return HttpResponse('unknown url')
 
+    def get(self, *args, **kwargs):
+        return self._common('GET')
+
     def post(self, *args, **kwargs):
-        request_endpoint = self.request.path_info.split('/')[-1]
-        if request_endpoint == 'generatechecksum.cgi':
-            return HttpResponse(generate(dict(self.request.data.lists())))
-        elif request_endpoint == 'verifychecksum.cgi':
-            return HttpResponse(verify(dict(self.request.data.lists())))
-        else:
-            # Wont ever reach here
-            return HttpResponse('unknown url')
+        return self._common('POST')

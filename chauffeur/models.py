@@ -2,6 +2,7 @@ from datetime import timedelta
 import os
 import uuid
 
+from django.conf import settings
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.db import models
@@ -25,6 +26,14 @@ SERVICE_GRACE_PERIOD = timedelta(minutes=60)
 USER_TYPE_CUSTOMER = 0
 USER_TYPE_DRIVER = 1
 USER_TYPE_ADMIN = 3
+
+
+def get_file_path(instance, filename):
+    output_name = '{}.{}'.format('pricing', filename.split('.')[-1])
+    file_path = os.path.join(settings.MEDIA_ROOT, output_name)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    return output_name
 
 
 def get_image_file_path(instance, filename):
@@ -228,3 +237,10 @@ class Review(models.Model):
 
         if self.driver_review and not self.customer_review:
             return REVIEW_STATUS_DRIVER_DONE
+
+
+class PricingPdf(models.Model):
+    source = models.FileField(upload_to=get_file_path)
+
+    def __str__(self):
+        return self.source.name
