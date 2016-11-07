@@ -1,6 +1,7 @@
 import os
 
 from chauffeur_service.helpers import ConfigHelpers
+from chauffeur_service.otp import request_sms_otp
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -50,6 +51,8 @@ MIDDLEWARE_CLASSES = [
 ROOT_URLCONF = 'chauffeur_service.urls'
 AUTH_USER_MODEL = 'chauffeur.ChauffeurUser'
 APP_NAME = 'Briver'
+ACCOUNT_ACTIVATION_SMS_OTP_CALLABLE = request_sms_otp
+ACCOUNT_MOBILE_NUMBER_FIELD = 'phone_number'
 
 TEMPLATES = [
     {
@@ -90,7 +93,6 @@ DATABASES = {
         'PORT': '',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
