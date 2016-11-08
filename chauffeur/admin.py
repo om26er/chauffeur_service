@@ -64,13 +64,24 @@ class PanelAdmin(admin.ModelAdmin):
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    exclude = (
-        'user_permissions',
-        'groups',
-        'account_activation_email_otp',
-        'account_activation_sms_otp',
-        'password_reset_email_otp',
-        'password_reset_sms_otp',
+    fields = (
+        'id',
+        'user_type',
+        'password',
+        'email',
+        'full_name',
+        'phone_number',
+        'photo',
+        'number_of_hires',
+        'review_count',
+        'review_stars',
+        'transmission_type',
+        'vehicle_type',
+        'vehicle_make',
+        'vehicle_model',
+        'vehicle_model_year',
+        'initial_app_payment',
+        'driver_filter_radius',
     )
     readonly_fields = (
         'email',
@@ -85,13 +96,30 @@ class CustomerAdmin(admin.ModelAdmin):
 
 
 class DriverAdmin(admin.ModelAdmin):
-    exclude = (
-        'user_permissions',
-        'groups',
-        'account_activation_email_otp',
-        'account_activation_sms_otp',
-        'password_reset_email_otp',
-        'password_reset_sms_otp',
+    fields = (
+        'id',
+        'is_approved_by_admin',
+        'user_type',
+        'password',
+        'email',
+        'gender',
+        'full_name',
+        'phone_number',
+        'photo',
+        'number_of_hires',
+        'review_count',
+        'review_stars',
+        'transmission_type',
+        'location',
+        'location_last_updated',
+        'driving_experience',
+        'bio',
+        'status',
+        'location_reporting_type',
+        'location_reporting_interval',
+        'doc1',
+        'doc2',
+        'doc3',
     )
     readonly_fields = (
         'email',
@@ -109,13 +137,30 @@ class DriverAdmin(admin.ModelAdmin):
 
 
 class DriversPendingApprovalAdmin(admin.ModelAdmin):
-    exclude = (
-        'user_permissions',
-        'groups',
-        'account_activation_email_otp',
-        'account_activation_sms_otp',
-        'password_reset_email_otp',
-        'password_reset_sms_otp',
+    fields = (
+        'id',
+        'is_approved_by_admin',
+        'user_type',
+        'password',
+        'email',
+        'gender',
+        'full_name',
+        'phone_number',
+        'photo',
+        'number_of_hires',
+        'review_count',
+        'review_stars',
+        'transmission_type',
+        'location',
+        'location_last_updated',
+        'driving_experience',
+        'bio',
+        'status',
+        'location_reporting_type',
+        'location_reporting_interval',
+        'doc1',
+        'doc2',
+        'doc3',
     )
     readonly_fields = (
         'email',
