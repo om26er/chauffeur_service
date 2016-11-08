@@ -6,7 +6,6 @@ from django.conf import settings
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.db import models
-from rest_framework.authtoken.models import Token
 from simple_login.models import BaseUser
 
 HIRE_REQUEST_PENDING = 1
@@ -50,6 +49,7 @@ class ChauffeurUser(BaseUser):
     phone_number = models.CharField(max_length=255, blank=False)
     photo = models.ImageField(blank=True, upload_to=get_image_file_path)
     # Drive specific profile fields
+    is_approved_by_admin = models.BooleanField(default=False, blank=True)
     bio = models.CharField(max_length=2000, blank=True)
     gender = models.CharField(max_length=255, blank=True)
     driving_experience = models.CharField(max_length=255, blank=True)

@@ -33,6 +33,13 @@ class DriverAdminProxy(ChauffeurUser):
         proxy = True
 
 
+class DriversPendingApprovalAdminProxy(ChauffeurUser):
+    class Meta:
+        verbose_name = 'Pending Driver'
+        verbose_name_plural = 'Pending Drivers'
+        proxy = True
+
+
 class PanelAdmin(admin.ModelAdmin):
     fields = (
         'email',
@@ -57,6 +64,19 @@ class PanelAdmin(admin.ModelAdmin):
 
 
 class CustomerAdmin(admin.ModelAdmin):
+    exclude = (
+        'user_permissions',
+        'groups',
+        'account_activation_email_otp',
+        'account_activation_sms_otp',
+        'password_reset_email_otp',
+        'password_reset_sms_otp',
+    )
+    readonly_fields = (
+        'email',
+        'password',
+    )
+
     class Meta:
         model = CustomerAdminProxy
 
@@ -65,11 +85,51 @@ class CustomerAdmin(admin.ModelAdmin):
 
 
 class DriverAdmin(admin.ModelAdmin):
+    exclude = (
+        'user_permissions',
+        'groups',
+        'account_activation_email_otp',
+        'account_activation_sms_otp',
+        'password_reset_email_otp',
+        'password_reset_sms_otp',
+    )
+    readonly_fields = (
+        'email',
+        'password',
+    )
+
     class Meta:
         model = DriverAdminProxy
 
     def get_queryset(self, request):
-        return self.model.objects.filter(user_type=USER_TYPE_DRIVER)
+        return self.model.objects.filter(
+            user_type=USER_TYPE_DRIVER,
+            is_approved_by_admin=True
+        )
+
+
+class DriversPendingApprovalAdmin(admin.ModelAdmin):
+    exclude = (
+        'user_permissions',
+        'groups',
+        'account_activation_email_otp',
+        'account_activation_sms_otp',
+        'password_reset_email_otp',
+        'password_reset_sms_otp',
+    )
+    readonly_fields = (
+        'email',
+        'password',
+    )
+
+    class Meta:
+        model = DriverAdminProxy
+
+    def get_queryset(self, request):
+        return self.model.objects.filter(
+            user_type=USER_TYPE_DRIVER,
+            is_approved_by_admin=False
+        )
 
 
 class HireRequestAdmin(admin.ModelAdmin):
@@ -97,6 +157,10 @@ class SegmentAdmin(admin.ModelAdmin):
 
 admin.site.register(CustomerAdminProxy, CustomerAdmin)
 admin.site.register(DriverAdminProxy, DriverAdmin)
+admin.site.register(
+    DriversPendingApprovalAdminProxy,
+    DriversPendingApprovalAdmin
+)
 admin.site.register(PanelAdminProxy, PanelAdmin)
 admin.site.register(HireRequest, HireRequestAdmin)
 admin.site.register(Charge, ChargeAdmin)
