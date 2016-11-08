@@ -65,7 +65,6 @@ class PanelAdmin(admin.ModelAdmin):
 
 class CustomerAdmin(admin.ModelAdmin):
     fields = (
-        'id',
         'user_type',
         'password',
         'email',
@@ -97,7 +96,6 @@ class CustomerAdmin(admin.ModelAdmin):
 
 class DriverAdmin(admin.ModelAdmin):
     fields = (
-        'id',
         'is_approved_by_admin',
         'user_type',
         'password',
@@ -138,7 +136,6 @@ class DriverAdmin(admin.ModelAdmin):
 
 class DriversPendingApprovalAdmin(admin.ModelAdmin):
     fields = (
-        'id',
         'is_approved_by_admin',
         'user_type',
         'password',
