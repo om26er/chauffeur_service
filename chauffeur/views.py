@@ -7,6 +7,8 @@ from rest_framework.generics import (
     CreateAPIView,
     GenericAPIView,
 )
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import permissions
 from simple_login.views import (
@@ -61,6 +63,8 @@ from chauffeur.helpers import (
     driver as driver_helpers,
 )
 
+MSG_NOT_APPROVED_BY_ADMIN = {'reason': 'NEED_ADMIN_APPROVAL'}
+
 
 def update_end_time_to_string(serializer_data):
     request_end_time = serializer_data['end_time']
@@ -88,6 +92,11 @@ def add_price_to_data(data):
     return data
 
 
+def is_driver_and_needs_admin_approval(user):
+    return user.user_type == USER_TYPE_DRIVER \
+            and not user.is_approved_by_admin
+
+
 class RegisterCustomer(CreateAPIView):
     serializer_class = CustomerSerializer
 
@@ -102,12 +111,33 @@ class ActivateAccount(ActivationAPIView):
     def get_serializer_class(self):
         return get_serializer_class_by_user(self.get_user())
 
+    def post(self, *args, **kwargs):
+        result = super().post(*args, **kwargs)
+        if result.status_code == status.HTTP_200_OK and \
+                is_driver_and_needs_admin_approval(self.get_user()):
+            return Response(
+                data=MSG_NOT_APPROVED_BY_ADMIN,
+                status=status.HTTP_403_FORBIDDEN
+            )
+        else:
+            return result
+
 
 class Login(LoginAPIView):
     user_model = ChauffeurUser
 
     def get_serializer_class(self):
         return get_serializer_class_by_user(self.get_user())
+
+    def post(self, *args, **kwargs):
+        result = super().post(*args, **kwargs)
+        if is_driver_and_needs_admin_approval(self.get_user()):
+            return Response(
+                data=MSG_NOT_APPROVED_BY_ADMIN,
+                status=status.HTTP_403_FORBIDDEN
+            )
+        else:
+            return result
 
 
 class UserProfile(RetrieveUpdateDestroyProfileAPIView):
