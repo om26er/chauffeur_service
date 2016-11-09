@@ -148,6 +148,7 @@ class HireRequest(models.Model):
     location = models.CharField(max_length=255, blank=False)
     start_time = models.DateTimeField(blank=False)
     time_span = models.IntegerField(blank=False)
+    payment_type = models.IntegerField(default=-1)
     status = models.IntegerField(default=HIRE_REQUEST_PENDING)
 
     @property

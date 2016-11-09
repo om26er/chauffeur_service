@@ -133,6 +133,7 @@ class PricingSerializer(serializers.ModelSerializer):
             'driver_price',
             'driver_hourly_rate',
             'total_price',
+            'payment_type',
         )
 
 
