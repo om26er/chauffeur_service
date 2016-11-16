@@ -7,7 +7,6 @@ CONFIG_SECTION_DATABASE_CREDENTIALS = 'database_credentials'
 
 
 class ConfigHelpers:
-
     def __init__(self, config_file):
         self.config_file = config_file
         if os.path.isfile(self.config_file):
