@@ -355,13 +355,10 @@ class RespondHire(GenericAPIView):
             h.send_hire_response_push_notification(push_ids, data)
 
         if new_status == HIRE_REQUEST_DONE:
-            driver = UserHelpers(id=self.request.user.id)
-            data = update_end_time_to_string(serializer.data)
-            if self.is_driver():
-                push_ids = get_user_push_keys(customer.user)
-            else:
-                push_ids = get_user_push_keys(driver.user)
-            h.send_hire_response_push_notification(push_ids, data)
+            h.send_hire_response_push_notification(
+                get_user_push_keys(hire_request.driver),
+                update_end_time_to_string(serializer.data)
+            )
 
         if new_status == HIRE_REQUEST_ACCEPTED:
             driver = UserHelpers(id=self.request.user.id)
